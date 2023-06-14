@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -70,6 +71,7 @@ func readInput(input chan<- rune) {
 			return
 		}
 		input <- rune(buf[0])
+		time.Sleep(40 * time.Millisecond)
 	}
 }
 
