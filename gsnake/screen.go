@@ -75,9 +75,9 @@ func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 	}
 
 	// render fruit
-	// fruits := []rune{'*', '@', '#', '¶', 'ø'}
-	// s.matrix[fruit.x][fruit.y] = rune(fruits[randInt(len(fruits)-1)])
-	s.matrix[fruit.x][fruit.y] = rune('@')
+	fruits := []rune{'*', '@', '#', '¶', 'ø'}
+	s.matrix[fruit.x][fruit.y] = rune(fruits[randInt(len(fruits)-1)])
+	// s.matrix[fruit.x][fruit.y] = rune('@')
 
 	// render snake
 	s.matrix[node.x][node.y] = rune(node.pointing)
