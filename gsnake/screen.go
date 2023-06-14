@@ -65,8 +65,11 @@ func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 	// render scoreboard
 	padded_score := strconv.Itoa(score)
 	padded_score = strings.Repeat("0", 5-len(padded_score)) + padded_score
-	scoreboard := "[ SCORE ]──[ " + padded_score + " ]───────────────[ 'q' to Quit ]"
-	j := 4
+	scoreboard := "[ SCORE ]──[ " + padded_score + " ]"
+	quitMsg := "[ 'q' to Quit ]"
+	padding := 4
+	scoreboard = strings.Repeat("─", s.cols-len(scoreboard)-len(quitMsg)-padding) + scoreboard + quitMsg
+	j := padding
 	for _, r := range scoreboard {
 		s.matrix[0][j] = r
 		j++
