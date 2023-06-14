@@ -68,7 +68,7 @@ func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 	scoreboard := "[ SCORE ]──[ " + padded_score + " ]"
 	quitMsg := "[ 'q' to Quit ]"
 	padding := 4
-	scoreboard = strings.Repeat("─", s.cols-len(scoreboard)-len(quitMsg)-padding) + scoreboard + quitMsg
+	scoreboard = scoreboard + strings.Repeat("─", s.cols-len(scoreboard)-len(quitMsg)-padding) + quitMsg
 	j := padding
 	for _, r := range scoreboard {
 		s.matrix[0][j] = r
