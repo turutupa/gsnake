@@ -65,6 +65,8 @@ func (g *Game) Run() {
 			g.GameOver()
 			return
 		}
+		// adding some extra time when going vertical because it feels faster
+		// than when going horizontally due to font width/height
 		duration := time.Duration(g.speed) * time.Millisecond
 		if g.snake.head.pointing == UP || g.snake.head.pointing == DOWN {
 			time.Sleep(duration + (duration * 3 / 4))

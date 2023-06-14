@@ -7,7 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 type Term struct {
@@ -75,27 +76,17 @@ func readInput(input chan<- rune) {
 	}
 }
 
-func getTermios(fd int) (*syscall.Termios, error) {
-	termios := &syscall.Termios{}
-	if _, _, err := syscall.Syscall(
-		syscall.SYS_IOCTL,
-		uintptr(fd),
-		uintptr(syscall.TCGETS),
-		uintptr(unsafe.Pointer(termios)),
-	); err != 0 {
-		return nil, err
+func getTermios(fd int) (*unix.Termios, error) {
+	termios, err := unix.IoctlGetTermios(fd, unix.TCGETS)
+	if err != nil {
+		return nil, fmt.Errorf("ioctl get termios: %v", err)
 	}
 	return termios, nil
 }
 
-func setTermios(fd int, termios *syscall.Termios) error {
-	if _, _, err := syscall.Syscall(
-		syscall.SYS_IOCTL,
-		uintptr(fd),
-		uintptr(syscall.TCSETS),
-		uintptr(unsafe.Pointer(termios)),
-	); err != 0 {
-		return err
+func setTermios(fd int, termios *unix.Termios) error {
+	if err := unix.IoctlSetTermios(fd, unix.TCSETS, termios); err != nil {
+		return fmt.Errorf("ioctl set termios: %v", err)
 	}
 	return nil
 }

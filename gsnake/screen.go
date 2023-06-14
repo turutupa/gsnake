@@ -3,6 +3,7 @@ package gsnake
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const VERTICAL rune = '│'
@@ -62,21 +63,16 @@ func (s *Screen) clear() {
  */
 func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 	// render scoreboard
-	scoreboard := []rune{'[', ' ', 'S', 'C', 'O', 'R', 'E', ' ', ']', ' '}
+	padded_score := strconv.Itoa(score)
+	padded_score = strings.Repeat("0", 5-len(padded_score)) + padded_score
+	scoreboard := "[ SCORE ]──[ " + padded_score + " ]───────────────[ 'q' to Quit ]"
 	j := 4
 	for _, r := range scoreboard {
 		s.matrix[0][j] = r
 		j++
 	}
-	j += 2
-	for _, r := range "[ " + strconv.Itoa(score) + " ]" {
-		s.matrix[0][j] = r
-		j++
-	}
 
 	// render fruit
-	// fruits := []rune{'*', '@', '#', '¶', 'ø'}
-	// s.matrix[fruit.x][fruit.y] = rune(fruits[randInt(len(fruits)-1)])
 	s.matrix[fruit.x][fruit.y] = rune('@')
 
 	// render snake
