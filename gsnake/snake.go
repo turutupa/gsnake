@@ -20,6 +20,7 @@ type Node struct {
 	pointing Pointing
 	prev     *Node
 	next     *Node
+	render   rune
 }
 
 type Direction struct {
@@ -35,6 +36,7 @@ func NewSnake(screen *Screen) *Snake {
 		pointing: RIGHT,
 		prev:     nil,
 		next:     nil,
+		render:   HORIZONTAL,
 	}
 	node := snake.head
 	for i := 0; i < 4; i++ { // initial length of 5
@@ -44,6 +46,7 @@ func NewSnake(screen *Screen) *Snake {
 			pointing: RIGHT,
 			prev:     node,
 			next:     nil,
+			render:   HORIZONTAL,
 		}
 		node = node.next
 	}

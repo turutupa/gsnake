@@ -47,9 +47,10 @@ func NewGame(
 
 func (g *Game) Run() {
 	go g.executeUserInput()
+	g.Term.clearTerminal()
+	g.screen.init()
 	for g.running {
-		g.Term.clearTerminal()
-		g.screen.clear()
+		g.screen.clear(g.fruit, g.snake.head, g.snake.tail, g.score)
 		g.snake.move()
 		if g.ateFruit() {
 			g.score += 10
@@ -58,7 +59,7 @@ func (g *Game) Run() {
 			g.fruit.new()
 		}
 		g.screen.update(g.fruit, g.snake.head, g.score)
-		g.screen.render()
+		g.screen.render(g.fruit, g.snake.head, g.score)
 		if g.intersects() {
 			time.Sleep(1 * time.Second)
 			g.Term.clearTerminal()

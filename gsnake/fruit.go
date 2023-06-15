@@ -24,9 +24,11 @@ func NewFruit(maxX, maxY int) *Fruit {
 }
 
 func (f *Fruit) new() {
+	x_tmp := f.x
+	y_tmp := f.y
 	f.x = 0
 	f.y = 0
-	for f.x == 0 || f.y == 0 {
+	for f.x == 0 || f.y == 0 || (x_tmp == f.x && y_tmp == f.y) {
 		f.x = randInt(f.maxX - 2)
 		f.y = randInt(f.maxY - 2)
 	}
@@ -34,6 +36,6 @@ func (f *Fruit) new() {
 
 func randInt(max int) int {
 	rand.Seed(time.Now().UnixNano())
-	min := 0
+	min := 1
 	return rand.Intn(max-min+1) + min
 }
