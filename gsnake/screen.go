@@ -159,7 +159,9 @@ func (s *Screen) render(fruit *Fruit, node *Node, score int) {
 
 	// - render snake -
 	for node != nil {
-		s.print(node.x, node.y, node.render)
+		if node.validated && node.x < s.rows && node.y < s.cols {
+			s.print(node.x, node.y, node.render)
+		}
 		node = node.next
 	}
 

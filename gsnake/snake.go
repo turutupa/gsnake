@@ -15,12 +15,13 @@ type Snake struct {
 }
 
 type Node struct {
-	x        int
-	y        int
-	pointing Pointing
-	prev     *Node
-	next     *Node
-	render   rune
+	x         int
+	y         int
+	pointing  Pointing
+	prev      *Node
+	next      *Node
+	render    rune
+	validated bool
 }
 
 type Direction struct {
@@ -31,22 +32,24 @@ type Direction struct {
 func NewSnake(screen *Screen) *Snake {
 	snake := &Snake{}
 	snake.head = &Node{
-		x:        screen.rows / 2,
-		y:        screen.cols / 2,
-		pointing: RIGHT,
-		prev:     nil,
-		next:     nil,
-		render:   HORIZONTAL,
+		x:         screen.rows / 2,
+		y:         screen.cols / 2,
+		pointing:  RIGHT,
+		prev:      nil,
+		next:      nil,
+		render:    HORIZONTAL,
+		validated: true,
 	}
 	node := snake.head
 	for i := 0; i < 6; i++ { // initial length of 7
 		node.next = &Node{
-			x:        node.x,
-			y:        node.y - 1,
-			pointing: RIGHT,
-			prev:     node,
-			next:     nil,
-			render:   HORIZONTAL,
+			x:         node.x,
+			y:         node.y - 1,
+			pointing:  RIGHT,
+			prev:      node,
+			next:      nil,
+			render:    HORIZONTAL,
+			validated: true,
 		}
 		node = node.next
 	}
@@ -79,6 +82,10 @@ func (s *Snake) move() {
 		x_prev = x_tmp
 		y_prev = y_tmp
 		pointing_prev = pointing_tmp
+		if !node.validated {
+			node.validated = true
+			break
+		}
 		node = node.next
 	}
 }
@@ -100,11 +107,12 @@ func (s *Snake) append() {
 		y = s.tail.y + 1
 	}
 	s.tail.next = &Node{
-		x:        x,
-		y:        y,
-		pointing: s.tail.pointing,
-		prev:     s.tail,
-		next:     nil,
+		x:         x,
+		y:         y,
+		pointing:  s.tail.pointing,
+		prev:      s.tail,
+		next:      nil,
+		validated: false,
 	}
 	s.tail = s.tail.next
 }

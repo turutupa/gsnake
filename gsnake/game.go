@@ -92,7 +92,7 @@ func (g *Game) intersects() bool {
 	}
 
 	node := head.next
-	for node != nil {
+	for node != nil && node.validated {
 		if x == node.x && y == node.y {
 			return true
 		}
