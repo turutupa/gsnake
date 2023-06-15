@@ -39,7 +39,7 @@ func NewSnake(screen *Screen) *Snake {
 		render:   HORIZONTAL,
 	}
 	node := snake.head
-	for i := 0; i < 4; i++ { // initial length of 5
+	for i := 0; i < 6; i++ { // initial length of 7
 		node.next = &Node{
 			x:        node.x,
 			y:        node.y - 1,
