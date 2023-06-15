@@ -181,11 +181,6 @@ func (s *Screen) render(fruit *Fruit, node *Node, score int) {
 		}
 	}
 	s.finishPrint()
-	var row string
-	for i := 0; i < s.cols; i++ {
-		row = row + string(s.matrix[0][i])
-	}
-	fmt.Println(row + strconv.Itoa(bracket_counter))
 }
 
 func (s *Screen) print(row, col int, r rune) {
