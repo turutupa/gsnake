@@ -9,9 +9,9 @@ type Speed int
 
 const (
 	Easy     Speed = 100
-	Normal         = 60
-	Hard           = 40
-	Insanity       = 20
+	Normal   Speed = 60
+	Hard     Speed = 40
+	Insanity Speed = 20
 )
 
 type Game struct {
@@ -49,13 +49,19 @@ func (g *Game) Run() {
 	go g.executeUserInput()
 	g.Term.clearTerminal()
 	g.screen.init()
-	for g.running {
+	for {
 		g.screen.clear(g.fruit, g.snake.head, g.snake.tail, g.score)
 		g.snake.move()
 		if g.ateFruit() {
 			g.score += 10
-			g.snake.append()
-			g.snake.append()
+			if g.speed == int(Easy) || g.speed == int(Normal) {
+				g.snake.append()
+				g.snake.append()
+			} else {
+				g.snake.append()
+				g.snake.append()
+				g.snake.append()
+			}
 			g.fruit.new()
 		}
 		g.screen.update(g.fruit, g.snake.head, g.score)

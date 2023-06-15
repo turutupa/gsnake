@@ -78,7 +78,7 @@ func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 	s.matrix[node.x][node.y] = rune(node.pointing)
 	node.render = rune(node.pointing)
 	node = node.next
-	for node != nil {
+	for node != nil && node.validated {
 		var cell rune
 		if node.next != nil {
 			if node.pointing == node.next.pointing {
@@ -158,8 +158,11 @@ func (s *Screen) render(fruit *Fruit, node *Node, score int) {
 	s.print(fruit.x, fruit.y, '@')
 
 	// - render snake -
-	for node != nil {
-		if node.validated && node.x < s.rows && node.y < s.cols {
+	for node != nil && node.validated {
+		if node.x < s.rows &&
+			node.x > 0 &&
+			node.y > 0 &&
+			node.y < s.cols {
 			s.print(node.x, node.y, node.render)
 		}
 		node = node.next
