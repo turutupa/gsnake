@@ -22,7 +22,7 @@ func TestNewGameDefaults(t *testing.T) {
 	if game.snake == nil {
 		t.Errorf("snake not initialized")
 	}
-	if game.speed != Normal {
+	if game.speed != int(Normal) {
 		t.Errorf("speed incorrect")
 	}
 }

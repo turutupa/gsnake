@@ -77,7 +77,7 @@ func readInput(input chan<- rune) {
 }
 
 func getTermios(fd int) (*unix.Termios, error) {
-	termios, err := unix.IoctlGetTermios(fd, unix.TCGETS)
+	termios, err := unix.IoctlGetTermios(fd, getTermiosRequest)
 	if err != nil {
 		return nil, fmt.Errorf("ioctl get termios: %v", err)
 	}
@@ -85,7 +85,7 @@ func getTermios(fd int) (*unix.Termios, error) {
 }
 
 func setTermios(fd int, termios *unix.Termios) error {
-	if err := unix.IoctlSetTermios(fd, unix.TCSETS, termios); err != nil {
+	if err := unix.IoctlSetTermios(fd, setTermiosRequest, termios); err != nil {
 		return fmt.Errorf("ioctl set termios: %v", err)
 	}
 	return nil
