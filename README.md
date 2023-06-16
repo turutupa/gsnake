@@ -1,6 +1,7 @@
 # gsnake
 
 ## TO DO
+- Add bash script to install/run the game
 - Finish README.md including how to install on machine
 - Improve leaderboard - maybe add some borders or add the option to input username
 - Completely new project would involve to conver this to a SSH application 
