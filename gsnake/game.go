@@ -2,7 +2,6 @@ package gsnake
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -78,9 +77,6 @@ func (g *Game) Run() {
 			g.GameOver()
 			if ok {
 				g.screen.renderScoreboard(scores)
-				for _, score := range scores {
-					fmt.Println("> " + strconv.Itoa(score))
-				}
 			}
 			return
 		}

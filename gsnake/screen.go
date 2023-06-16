@@ -131,7 +131,34 @@ func (s *Screen) render(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.finishPrint()
 }
 
-func (s *Screen) renderScoreboard(scores []int) {}
+func (s *Screen) renderScoreboard(scores []int) {
+	title := " TOP SCORES "
+	scores = scores[:5]
+	marginLeft := len(title)/2 + 1
+	row := s.rows / 3
+	for i, _ := range title {
+		s.print(row, s.cols/2-marginLeft+i, ' ')
+	}
+	row++
+	for i, r := range title {
+		s.print(row, s.cols/2-marginLeft+i, r)
+	}
+	row++
+
+	for _, score := range scores {
+		scoreStr := strconv.Itoa(score)
+		scoreStr = "     " + scoreStr + "    "
+		for j, num := range scoreStr {
+			s.print(row, s.cols/2-marginLeft+j, num)
+		}
+		row++
+	}
+
+	for i := range title {
+		s.print(row, s.cols/2-marginLeft+i, ' ')
+	}
+	s.finishPrint()
+}
 
 /*
 * updates the snake on the matrix
