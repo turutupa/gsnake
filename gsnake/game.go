@@ -70,7 +70,7 @@ func (g *Game) Run() {
 			g.fruit.new()
 		}
 		g.screen.update(g.fruit, g.snake.head, g.score)
-		g.screen.render(g.fruit, g.snake.head, g.score)
+		g.screen.render(g.fruit, g.snake.head, g.snake.tail, g.score)
 		if g.intersects() {
 			scores, ok := g.scoreboard.update(g.score)
 			time.Sleep(1 * time.Second)

@@ -14,9 +14,10 @@ const BOTTOM_RIGHT rune = '╯'
 const HORIZONTAL rune = '─'
 
 type Screen struct {
-	rows   int
-	cols   int
-	matrix [][]rune
+	rows          int
+	cols          int
+	matrix        [][]rune
+	isFirstRender bool
 }
 
 func NewScreen(rows int, cols int) *Screen {
@@ -47,7 +48,7 @@ func NewScreen(rows int, cols int) *Screen {
 			matrix[i][j] = cell
 		}
 	}
-	return &Screen{rows, cols, matrix}
+	return &Screen{rows, cols, matrix, true}
 }
 
 func (s *Screen) updateScoreboard(score int) {
@@ -63,6 +64,74 @@ func (s *Screen) updateScoreboard(score int) {
 		j++
 	}
 }
+
+// print borders
+func (s *Screen) init() {
+	s.updateScoreboard(0)
+	for i := 0; i < s.cols; i++ {
+		s.print(0, i, s.matrix[0][i])
+		s.print(s.rows-1, i, s.matrix[s.rows-1][i])
+	}
+	for i := 0; i < s.rows; i++ {
+		s.print(i, 0, s.matrix[i][0])
+		s.print(i, s.cols-1, s.matrix[i][s.cols-1])
+	}
+}
+
+func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
+	s.print(head.x, head.y, ' ')
+	s.print(tail.x, tail.y, ' ')
+}
+
+func (s *Screen) render(fruit *Fruit, head *Node, tail *Node, score int) {
+	// - render fruit -
+	if s.matrix[fruit.x][fruit.y] == '@' {
+		s.print(fruit.x, fruit.y, '@')
+	}
+
+	// - render snake -
+	// the first time we render the entire snake
+	// the rest of the time only the parts of the snake
+	// that requires re-rendering
+	if s.isFirstRender {
+		node := head
+		for node != nil && node.validated {
+			s.print(node.x, node.y, node.render)
+			node = node.next
+		}
+		s.isFirstRender = false
+	} else {
+		// - render snake -
+		s.print(head.x, head.y, head.render)
+		s.print(head.next.x, head.next.y, head.next.render)
+		node := tail
+		for !node.validated {
+			node = node.prev
+		}
+		s.print(node.x, node.y, node.render)
+	}
+
+	// - top border -
+	// we only want to re-render the score so
+	// calcualte where the score is positioned,
+	// which is between the second set of brackets
+	bracket_counter := 0
+	for j := 0; j < s.cols; j++ {
+		if s.matrix[0][j] == '[' || s.matrix[0][j] == ']' {
+			bracket_counter = bracket_counter + 1
+			continue
+		}
+		if bracket_counter == 3 {
+			s.print(0, j, s.matrix[0][j])
+		}
+		if bracket_counter >= 4 {
+			break
+		}
+	}
+	s.finishPrint()
+}
+
+func (s *Screen) renderScoreboard(scores []int) {}
 
 /*
 * updates the snake on the matrix
@@ -133,62 +202,6 @@ func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 		node = node.next
 	}
 }
-
-// print borders
-func (s *Screen) init() {
-	s.updateScoreboard(0)
-	for i := 0; i < s.cols; i++ {
-		s.print(0, i, s.matrix[0][i])
-		s.print(s.rows-1, i, s.matrix[s.rows-1][i])
-	}
-	for i := 0; i < s.rows; i++ {
-		s.print(i, 0, s.matrix[i][0])
-		s.print(i, s.cols-1, s.matrix[i][s.cols-1])
-	}
-}
-
-func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
-	s.print(fruit.x, fruit.y, ' ')
-	s.print(head.x, head.y, ' ')
-	s.print(tail.x, tail.y, ' ')
-}
-
-func (s *Screen) render(fruit *Fruit, node *Node, score int) {
-	// - render fruit -
-	s.print(fruit.x, fruit.y, '@')
-
-	// - render snake -
-	for node != nil && node.validated {
-		if node.x < s.rows &&
-			node.x > 0 &&
-			node.y > 0 &&
-			node.y < s.cols {
-			s.print(node.x, node.y, node.render)
-		}
-		node = node.next
-	}
-
-	// - top border -
-	// we only want to re-render the score so
-	// calcualte where the score is positioned,
-	// which is between the second set of brackets
-	bracket_counter := 0
-	for j := 0; j < s.cols; j++ {
-		if s.matrix[0][j] == '[' || s.matrix[0][j] == ']' {
-			bracket_counter = bracket_counter + 1
-			continue
-		}
-		if bracket_counter == 3 {
-			s.print(0, j, s.matrix[0][j])
-		}
-		if bracket_counter >= 4 {
-			break
-		}
-	}
-	s.finishPrint()
-}
-
-func (s *Screen) renderScoreboard(scores []int) {}
 
 func (s *Screen) print(row, col int, r rune) {
 	fmt.Printf("\033[%d;%dH%c", row+1, col+1, r)

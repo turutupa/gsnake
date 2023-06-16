@@ -72,7 +72,7 @@ func readInput(input chan<- rune) {
 			return
 		}
 		input <- rune(buf[0])
-		time.Sleep(30 * time.Millisecond)
+		time.Sleep(40 * time.Millisecond)
 	}
 }
 
