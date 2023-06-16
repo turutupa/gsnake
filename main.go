@@ -11,9 +11,10 @@ func main() {
 	cols := 55
 	term := gsnake.NewTerm()
 	screen := gsnake.NewScreen(rows, cols)
+	scoreboard, _ := gsnake.NewScoreboard()
 	snake := gsnake.NewSnake(screen)
 	fruit := gsnake.NewFruit(rows, cols)
-	game := gsnake.NewGame(term, screen, fruit, snake, getSnakeSpeed())
+	game := gsnake.NewGame(term, screen, scoreboard, fruit, snake, getSnakeSpeed())
 	game.Run()
 }
 

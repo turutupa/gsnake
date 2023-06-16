@@ -188,7 +188,7 @@ func (s *Screen) render(fruit *Fruit, node *Node, score int) {
 	s.finishPrint()
 }
 
-func (s *Screen) renderScoreboard() {}
+func (s *Screen) renderScoreboard(scores []int) {}
 
 func (s *Screen) print(row, col int, r rune) {
 	fmt.Printf("\033[%d;%dH%c", row+1, col+1, r)

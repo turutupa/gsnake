@@ -2,6 +2,7 @@ package gsnake
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -17,27 +18,31 @@ const (
 type Game struct {
 	screen *Screen
 	*Term
-	snake   *Snake
-	fruit   *Fruit
-	speed   int
-	running bool
-	score   int
+	scoreboard *Scoreboard
+	fruit      *Fruit
+	snake      *Snake
+	speed      int
+	running    bool
+	score      int
 }
 
 func NewGame(
 	term *Term,
 	screen *Screen,
+	scoreboard *Scoreboard,
 	fruit *Fruit,
 	snake *Snake,
 	speed Speed,
 ) *Game {
 	game := &Game{
-		screen:  screen,
-		Term:    term,
-		snake:   snake,
-		fruit:   fruit,
-		speed:   int(speed),
-		running: true,
+		screen:     screen,
+		Term:       term,
+		scoreboard: scoreboard,
+		fruit:      fruit,
+		snake:      snake,
+		speed:      int(speed),
+		running:    true,
+		score:      0,
 	}
 	term.OnExit = func() {
 		game.running = false
@@ -67,9 +72,16 @@ func (g *Game) Run() {
 		g.screen.update(g.fruit, g.snake.head, g.score)
 		g.screen.render(g.fruit, g.snake.head, g.score)
 		if g.intersects() {
+			scores, ok := g.scoreboard.update(g.score)
 			time.Sleep(1 * time.Second)
 			g.Term.clearTerminal()
 			g.GameOver()
+			if ok {
+				g.screen.renderScoreboard(scores)
+				for _, score := range scores {
+					fmt.Println("> " + strconv.Itoa(score))
+				}
+			}
 			return
 		}
 		// adding some extra time when going vertical because it feels faster
