@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"turutupa/gsnake/gsnake"
+	"turutupa/gsnake/game"
 )
 
 func main() {

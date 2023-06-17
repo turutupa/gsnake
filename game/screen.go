@@ -83,7 +83,7 @@ func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.print(tail.x, tail.y, ' ')
 }
 
-func (s *Screen) render(fruit *Fruit, head *Node, tail *Node, score int) {
+func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 	// - render fruit -
 	if s.matrix[fruit.x][fruit.y] == '@' {
 		s.print(fruit.x, fruit.y, '@')

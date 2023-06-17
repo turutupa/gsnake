@@ -7,9 +7,9 @@ import (
 type Speed int
 
 const (
-	Easy     Speed = 100
-	Normal   Speed = 60
-	Hard     Speed = 40
+	Easy     Speed = 50
+	Normal   Speed = 40
+	Hard     Speed = 30
 	Insanity Speed = 20
 )
 
@@ -68,7 +68,7 @@ func (g *Game) Run() {
 			g.fruit.new()
 		}
 		g.screen.update(g.fruit, g.snake.head, g.score)
-		g.screen.render(g.fruit, g.snake.head, g.snake.tail, g.score)
+		g.screen.renderSnake(g.fruit, g.snake.head, g.snake.tail, g.score)
 		if g.intersects() {
 			scores, ok := g.scoreboard.update(g.score)
 			time.Sleep(1 * time.Second)
