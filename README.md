@@ -32,7 +32,7 @@ $ go run main.go
 - ~~Add bash script to install/run the game~~
 - Finish README.md including how to install on machine
 - Improve leaderboard 
-    - Add some borders
+    - ~~Add some borders~~
     - Add the option to input username
     - See top scores by (difficulty) mode
 - Add main menu 

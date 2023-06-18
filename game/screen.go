@@ -136,12 +136,20 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 }
 
 func (s *Screen) renderScoreboard(scores []int) {
-	title := " TOP SCORES "
+	title := "| " + "TOP SCORES" + " |"
 	scores = scores[:5]
-	marginLeft := len(title)/2 + 1
-	row := s.rows / 3
-	for i := range title {
-		s.print(row, s.cols/2-marginLeft+i, ' ')
+	marginLeft := len(title)/2 - 1
+	startLine := s.cols/2 - marginLeft
+	row := s.rows/3 - 1
+	for i := 0; i < len(title); i++ {
+		position := startLine + i
+		if i == 0 {
+			s.print(row, position, TOP_LEFT)
+		} else if i == len(title)-1 {
+			s.print(row, position, TOP_RIGHT)
+		} else {
+			s.print(row, position, HORIZONTAL)
+		}
 	}
 	row++
 	for i, r := range title {
@@ -150,16 +158,30 @@ func (s *Screen) renderScoreboard(scores []int) {
 	row++
 
 	for _, score := range scores {
+		rightPadding := 2
 		scoreStr := strconv.Itoa(score)
-		scoreStr = "     " + scoreStr + "    "
-		for j, num := range scoreStr {
-			s.print(row, s.cols/2-marginLeft+j, num)
+		scoreStr = strings.Repeat(" ", len(title)-len(scoreStr)-rightPadding) + scoreStr + strings.Repeat(" ", rightPadding) // add padding to the right if needed
+
+		for j, r := range scoreStr {
+			position := startLine + j
+			if j == 0 || j == len(title)-1 {
+				s.print(row, position, '|')
+			} else {
+				s.print(row, position, r)
+			}
 		}
 		row++
 	}
 
 	for i := range title {
-		s.print(row, s.cols/2-marginLeft+i, ' ')
+		position := s.cols/2 - marginLeft + i
+		if i == 0 {
+			s.print(row, position, BOTTOM_LEFT)
+		} else if i == len(title)-1 {
+			s.print(row, position, BOTTOM_RIGHT)
+		} else {
+			s.print(row, position, HORIZONTAL)
+		}
 	}
 	s.finishPrint()
 }
