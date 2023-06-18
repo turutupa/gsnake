@@ -90,28 +90,28 @@ func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
 }
 
 func (s *Screen) renderMainMenu(selected int) {
+	s.init()
 	title := "SELECT GAME MODE"
 	startLine := s.cols/2 - len(title)/2 - 1
-	row := s.rows/3 - 1
+	row := s.rows / 5
 	gameModes := []string{"EASY", "NORMAL", "HARD", "INSANITY", "EXIT"}
-	for i, r := range title {
-		s.print(row, startLine+i, r)
-	}
+	s.printBold(row, startLine, title)
 	row += 2
 	optionIndex := 0
 	for i, game := range gameModes {
-		paddingRight := 4
+		paddingRight := 6
 		gameFmt := strings.Repeat(" ", len(title)-len(game)-paddingRight)
 		gameFmt = gameFmt + game
 		if optionIndex == selected {
 			selectedIndicator := " <"
-			gameFmt = gameFmt + selectedIndicator
+			gameFmt = " " + gameFmt + selectedIndicator
 			gameFmt = gameFmt + strings.Repeat(" ", paddingRight-len(selectedIndicator))
+			s.printBold(row, startLine, gameFmt)
 		} else {
 			gameFmt = gameFmt + strings.Repeat(" ", paddingRight)
-		}
-		for i, r := range gameFmt {
-			s.print(row, startLine+i, r)
+			for i, r := range gameFmt {
+				s.print(row, startLine+i, r)
+			}
 		}
 		if i == len(gameModes)-2 {
 			row += 2
@@ -298,12 +298,12 @@ func (s *Screen) print(row, col int, r rune) {
 	fmt.Printf("\033[%d;%dH%c", row+1, col+1, r)
 }
 
-func (s *Screen) printBold(row, col int, r rune) {
-	fmt.Printf("\033[%d;%dH\033[1m%c\033[0m", row, col, r)
+func (s *Screen) printBold(row, col int, r string) {
+	fmt.Printf("\033[%d;%dH\033[1m%s\033[0m", row+1, col+1, r)
 }
 
 func (s *Screen) finishPrint() {
-	fmt.Printf("\033[%d;%dH", s.rows+2, s.cols+2)
+	fmt.Printf("\033[%d;%dH", s.rows+2, 0)
 }
 
 func (s *Screen) GameOver() {
