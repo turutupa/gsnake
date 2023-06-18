@@ -16,6 +16,11 @@ const (
 	INSANITY Speed = 20
 )
 
+const ARROW_UP int = 65
+const ARROW_DOWN int = 66
+const ARROW_RIGHT int = 67
+const ARROW_LEFT int = 68
+
 var MENU_OPTIONS = []Speed{EASY, NORMAL, HARD, INSANITY, EXIT}
 
 type State int
@@ -175,10 +180,10 @@ func (g *Game) executeUserInput() {
 }
 
 func (g *Game) userActionMainMenu(event rune) {
-	if event == 'w' || event == 'k' {
+	if event == 'w' || event == 'k' || int(event) == ARROW_UP {
 		g.selectedMenuOption = int(math.Max(float64(0), float64(g.selectedMenuOption-1)))
 		g.selectChan <- true
-	} else if event == 's' || event == 'j' {
+	} else if event == 's' || event == 'j' || int(event) == ARROW_DOWN {
 		g.selectedMenuOption = int(math.Min(float64(len(MENU_OPTIONS)-1), float64(g.selectedMenuOption+1)))
 		g.selectChan <- true
 	} else if event == '\n' {
@@ -194,19 +199,19 @@ func (g *Game) userActionMainMenu(event rune) {
 
 func (g *Game) userActionSnake(event rune) {
 	pointing := g.snake.head.pointing
-	if event == 'w' {
+	if event == 'w' || int(event) == ARROW_UP {
 		if pointing != DOWN {
 			g.snake.head.pointing = UP
 		}
-	} else if event == 's' {
+	} else if event == 's' || int(event) == ARROW_DOWN {
 		if pointing != UP {
 			g.snake.head.pointing = DOWN
 		}
-	} else if event == 'a' {
+	} else if event == 'a' || int(event) == ARROW_LEFT {
 		if pointing != RIGHT {
 			g.snake.head.pointing = LEFT
 		}
-	} else if event == 'd' {
+	} else if event == 'd' || int(event) == ARROW_RIGHT {
 		if pointing != LEFT {
 			g.snake.head.pointing = RIGHT
 		}
