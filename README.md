@@ -15,13 +15,6 @@ After you've installed you can run
 $ gsnake 
 ```
 
-or you can run with flag
-```bash
-$ gsnake --hard
-```
-
-The different values for the game difficulty are `--easy`, `--normal`, `--hard` and `--insanity`
-
 ### Dev
 Go to the root of the project and execute:
 ```bash
