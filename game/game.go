@@ -179,9 +179,13 @@ func (g *Game) userActionMainMenu(event rune) {
 		g.speed = int(MENU_OPTIONS[g.selectedMenuOption])
 		g.state = PLAYING
 		if g.selectedMenuOption == len(MENU_OPTIONS)-1 {
+			g.Term.clearTerminal()
 			os.Exit(0)
 		}
 		g.selectChan <- true
+	} else if event == 'q' {
+		g.Term.clearTerminal()
+		os.Exit(0)
 	}
 }
 

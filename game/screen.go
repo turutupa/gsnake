@@ -99,12 +99,12 @@ func (s *Screen) renderMainMenu(selected int) {
 	row += 2
 	optionIndex := 0
 	for i, game := range gameModes {
-		paddingRight := 6
-		gameFmt := strings.Repeat(" ", len(title)-len(game)-paddingRight)
+		paddingRight := 8
+		gameFmt := strings.Repeat(" ", len(title)-(len(game)/2)-paddingRight)
 		gameFmt = gameFmt + game
 		if optionIndex == selected {
 			selectedIndicator := " <"
-			gameFmt = " " + gameFmt + selectedIndicator
+			gameFmt = gameFmt + selectedIndicator
 			gameFmt = gameFmt + strings.Repeat(" ", paddingRight-len(selectedIndicator))
 			s.printBold(row, startLine, gameFmt)
 		} else {
@@ -332,4 +332,21 @@ func (s *Screen) GameOver() {
                 PRESS ENTER TO CONTINUE
 `
 	fmt.Println(gameOver)
+}
+
+func (s *Screen) printLogo() {
+	logo := `
+                                              $$\                 
+                                              $$ |                
+       $$$$$$\   $$$$$$$\ $$$$$$$\   $$$$$$\  $$ |  $$\  $$$$$$\  
+      $$  __$$\ $$  _____|$$  __$$\  \____$$\ $$ | $$  |$$  __$$\ 
+      $$ /  $$ |\$$$$$$\  $$ |  $$ | $$$$$$$ |$$$$$$  / $$$$$$$$ |
+      $$ |  $$ | \____$$\ $$ |  $$ |$$  __$$ |$$  _$$<  $$   ____|
+      \$$$$$$$ |$$$$$$$  |$$ |  $$ |\$$$$$$$ |$$ | \$$\ \$$$$$$$\ 
+       \____$$ |\_______/ \__|  \__| \_______|\__|  \__| \_______|
+      $$\   $$ |                                                  
+      \$$$$$$  |                                                  
+       \______/
+  `
+	fmt.Println(logo)
 }
