@@ -51,6 +51,12 @@ func NewScreen(rows int, cols int) *Screen {
 	return &Screen{rows, cols, matrix, true}
 }
 
+func (s *Screen) restart() {
+	newScreen := NewScreen(s.rows, s.cols)
+	s.matrix = newScreen.matrix
+	s.isFirstRender = newScreen.isFirstRender
+}
+
 func (s *Screen) updateScoreboard(score int) {
 	padded_score := strconv.Itoa(score)
 	padded_score = strings.Repeat("0", 5-len(padded_score)) + padded_score
@@ -83,8 +89,38 @@ func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.print(tail.x, tail.y, ' ')
 }
 
-func (s *Screen) renderMainMenu() {
-
+func (s *Screen) renderMainMenu(selected int) {
+	title := "SELECT GAME MODE"
+	startLine := s.cols/2 - len(title)/2 - 1
+	row := s.rows/3 - 1
+	gameModes := []string{"EASY", "NORMAL", "HARD", "INSANITY", "EXIT"}
+	for i, r := range title {
+		s.print(row, startLine+i, r)
+	}
+	row += 2
+	optionIndex := 0
+	for i, game := range gameModes {
+		paddingRight := 4
+		gameFmt := strings.Repeat(" ", len(title)-len(game)-paddingRight)
+		gameFmt = gameFmt + game
+		if optionIndex == selected {
+			selectedIndicator := " <"
+			gameFmt = gameFmt + selectedIndicator
+			gameFmt = gameFmt + strings.Repeat(" ", paddingRight-len(selectedIndicator))
+		} else {
+			gameFmt = gameFmt + strings.Repeat(" ", paddingRight)
+		}
+		for i, r := range gameFmt {
+			s.print(row, startLine+i, r)
+		}
+		if i == len(gameModes)-2 {
+			row += 2
+		} else {
+			row++
+		}
+		optionIndex++
+	}
+	s.finishPrint()
 }
 
 func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
@@ -160,9 +196,11 @@ func (s *Screen) renderScoreboard(scores []int) {
 	for _, score := range scores {
 		rightPadding := 2
 		scoreStr := strconv.Itoa(score)
-		scoreStr = strings.Repeat(" ", len(title)-len(scoreStr)-rightPadding) + scoreStr + strings.Repeat(" ", rightPadding) // add padding to the right if needed
+		scoreFmt := strings.Repeat(" ", len(title)-len(scoreStr)-rightPadding)
+		scoreFmt = scoreFmt + scoreStr
+		scoreFmt = scoreFmt + strings.Repeat(" ", rightPadding) // add padding to the right if needed
 
-		for j, r := range scoreStr {
+		for j, r := range scoreFmt {
 			position := startLine + j
 			if j == 0 || j == len(title)-1 {
 				s.print(row, position, '|')
@@ -287,6 +325,11 @@ func (s *Screen) GameOver() {
       $$ |  $$ |  \$$$  /  $$ |      $$ |  $$ |
        $$$$$$  |   \$  /   $$$$$$$$\ $$ |  $$ |
        \______/     \_/    \________|\__|  \__|
+
+
+ 
+
+                PRESS ENTER TO CONTINUE
 `
 	fmt.Println(gameOver)
 }

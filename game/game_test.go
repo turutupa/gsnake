@@ -12,7 +12,7 @@ func TestNewGameDefaults(t *testing.T) {
 	screen := NewScreen(rows, cols)
 	fruit := NewFruit(rows, cols)
 	snake := NewSnake(screen)
-	game := NewGame(term, screen, scoreboard, fruit, snake, Normal)
+	game := NewGame(term, screen, scoreboard, fruit, snake, NORMAL)
 
 	if game.screen == nil {
 		t.Errorf("screen not initialized")
@@ -23,7 +23,7 @@ func TestNewGameDefaults(t *testing.T) {
 	if game.snake == nil {
 		t.Errorf("snake not initialized")
 	}
-	if game.speed != int(Normal) {
+	if game.speed != int(NORMAL) {
 		t.Errorf("speed incorrect")
 	}
 }

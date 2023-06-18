@@ -57,6 +57,12 @@ func NewSnake(screen *Screen) *Snake {
 	return snake
 }
 
+func (s *Snake) restart(screen *Screen) {
+	newSnake := NewSnake(screen)
+	s.head = newSnake.head
+	s.tail = newSnake.tail
+}
+
 func (s *Snake) move() {
 	node := s.head
 	x_prev := node.x

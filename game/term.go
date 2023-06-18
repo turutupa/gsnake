@@ -44,7 +44,6 @@ func (t *Term) PollEvents() rune {
 			if t.OnExit != nil {
 				t.OnExit()
 			}
-			os.Exit(0)
 		}
 		return r
 	}

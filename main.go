@@ -20,18 +20,18 @@ func main() {
 
 func getSnakeSpeed() gsnake.Speed {
 	args := os.Args
-	var speed gsnake.Speed = gsnake.Normal // Default speed
+	var speed gsnake.Speed = gsnake.NORMAL // Default speed
 	if len(args) >= 2 {
 		arg := args[1]
 		switch arg {
 		case "--easy":
-			speed = gsnake.Easy
+			speed = gsnake.EASY
 		case "--normal":
-			speed = gsnake.Normal
+			speed = gsnake.NORMAL
 		case "--hard":
-			speed = gsnake.Hard
+			speed = gsnake.HARD
 		case "--insanity":
-			speed = gsnake.Insanity
+			speed = gsnake.INSANITY
 		default:
 			fmt.Println("Invalid speed option. Using default speed: Normal")
 		}
