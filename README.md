@@ -1,24 +1,15 @@
 # gsnake
 
-## How to install 
+## Install && Run 
 Execute `install.sh` script 
 
 ```bash
 $ ./install.sh
 ```
 
-## How to run
-
-### Locally installed 
 After you've installed you can run
 ```bash 
 $ gsnake 
-```
-
-### Dev
-Go to the root of the project and execute:
-```bash
-$ go run main.go 
 ```
 
 ## TO DO
