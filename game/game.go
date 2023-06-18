@@ -61,7 +61,13 @@ func NewGame(
 		selectedMenuOption: 2,
 		selectChan:         make(chan bool),
 	}
-	term.OnExit = func() { game.restart() }
+	term.OnExit = func() {
+		if game.state == MAIN_MENU {
+			game.Term.clearTerminal()
+			os.Exit(0)
+		}
+		game.restart()
+	}
 	return game
 }
 
@@ -77,9 +83,9 @@ func (g *Game) Run() {
 }
 
 func (g *Game) restart() {
-	g.state = MAIN_MENU
 	g.screen.restart()
 	g.snake.restart(g.screen)
+	g.state = MAIN_MENU
 }
 
 func (g *Game) mainMenu() {
@@ -183,9 +189,6 @@ func (g *Game) userActionMainMenu(event rune) {
 			os.Exit(0)
 		}
 		g.selectChan <- true
-	} else if event == 'q' {
-		g.Term.clearTerminal()
-		os.Exit(0)
 	}
 }
 
@@ -211,7 +214,7 @@ func (g *Game) userActionSnake(event rune) {
 }
 
 func (g *Game) userActionScoreboard(event rune) {
-	if event == '\n' {
+	if event == '\n' || event == 'q' {
 		g.selectChan <- true
 	}
 }

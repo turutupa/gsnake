@@ -35,10 +35,6 @@ func NewTerm() *Term {
 
 func (t *Term) PollEvents() rune {
 	select {
-	case <-t.sig:
-		t.OnExit()
-		os.Exit(0)
-		return 'q'
 	case r := <-t.input:
 		if r == 'q' {
 			if t.OnExit != nil {
