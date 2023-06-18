@@ -83,6 +83,10 @@ func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.print(tail.x, tail.y, ' ')
 }
 
+func (s *Screen) renderMainMenu() {
+
+}
+
 func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 	// - render fruit -
 	if s.matrix[fruit.x][fruit.y] == '@' {
@@ -136,7 +140,7 @@ func (s *Screen) renderScoreboard(scores []int) {
 	scores = scores[:5]
 	marginLeft := len(title)/2 + 1
 	row := s.rows / 3
-	for i, _ := range title {
+	for i := range title {
 		s.print(row, s.cols/2-marginLeft+i, ' ')
 	}
 	row++
