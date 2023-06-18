@@ -1,5 +1,33 @@
 # gsnake
 
+## How to install 
+Execute `install.sh` script 
+
+```bash
+$ ./install.sh
+```
+
+## How to run
+
+### Locally installed 
+After you've installed you can run
+```bash 
+$ gsnake 
+```
+
+or you can run with flag
+```bash
+$ gsnake --hard
+```
+
+The different values for the game difficulty are `--easy`, `--normal`, `--hard` and `--insanity`
+
+### Dev
+Go to the root of the project and execute:
+```bash
+$ go run main.go 
+```
+
 ## TO DO
 - ~~Add bash script to install/run the game~~
 - Finish README.md including how to install on machine
@@ -13,18 +41,3 @@
     - If you eat it in that time snake will not get longer, 
     - otherwise it simply disappears
 - Completely new project would involve to conver this to a SSH application 
-
-## How to install 
-Execute `install.sh` script 
-
-```bash
-$ ./install.sh
-```
-
-## How to run
-Go to the root of the project and execute:
-```bash
-$ go run main.go --hard
-```
-
-The different values for the game are `--easy`, `--normal`, `--hard` and `--insanity`
