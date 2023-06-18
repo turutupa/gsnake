@@ -100,14 +100,16 @@ func (s *Screen) renderMainMenu(selected int) {
 	optionIndex := 0
 	for i, game := range gameModes {
 		paddingRight := 8
-		gameFmt := strings.Repeat(" ", len(title)-(len(game)/2)-paddingRight)
-		gameFmt = gameFmt + game
 		if optionIndex == selected {
-			selectedIndicator := " <"
-			gameFmt = gameFmt + selectedIndicator
-			gameFmt = gameFmt + strings.Repeat(" ", paddingRight-len(selectedIndicator))
+			selectedIndicatorLeft := "> "
+			selectedIndicatorRight := " <"
+			gameFmt := strings.Repeat(" ", len(title)-len(selectedIndicatorLeft)-(len(game)/2)-paddingRight)
+			gameFmt = gameFmt + selectedIndicatorLeft + game + selectedIndicatorRight
+			gameFmt = gameFmt + strings.Repeat(" ", paddingRight-len(selectedIndicatorRight))
 			s.printBold(row, startLine, gameFmt)
 		} else {
+			gameFmt := strings.Repeat(" ", len(title)-(len(game)/2)-paddingRight)
+			gameFmt = gameFmt + game
 			gameFmt = gameFmt + strings.Repeat(" ", paddingRight)
 			for i, r := range gameFmt {
 				s.print(row, startLine+i, r)
