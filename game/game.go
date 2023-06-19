@@ -88,6 +88,7 @@ func (g *Game) Run() {
 }
 
 func (g *Game) restart() {
+	g.score = 0
 	g.screen.restart()
 	g.snake.restart(g.screen)
 	g.state = MAIN_MENU
