@@ -14,6 +14,19 @@ After you've installed you can run
 $ gsnake 
 ```
 
+## Architecture 
+Representative schematic, doesn't reflect 100% the code but the main components.
+
+![architecture](media/architecture.png)
+
+## Motivation
+The purpose of this project is merely educational and fun. Originally my objective was to create an SSH app out of it - still hoping to build it - but most importantly, learn. That is why no external libraries were used, like `tcell`, in order to capture user input or rendering the graphics. Everything is done natively in go.
+
+## Contribute
+I'm more than happyp if you want to help out by either bringing new cool ideas or by implementing some of the pending features (see more in the TO DO list down below).
+
+Feel free to post new issues or we can even schedule a call.
+
 ## TO DO
 - ~~Add bash script to install/run the game~~
 - ~~Finish README.md including how to install on machine~~
