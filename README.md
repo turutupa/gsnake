@@ -1,5 +1,7 @@
 # gsnake
 
+![GSNAKE](media/gsnake.png)
+
 ## Install && Run 
 Execute `install.sh` script 
 
