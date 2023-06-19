@@ -175,6 +175,9 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 
 func (s *Screen) renderScoreboard(scores []int) {
 	title := "| " + "TOP SCORES" + " |"
+	for len(scores) < 5 {
+		scores = append(scores, 0)
+	}
 	scores = scores[:5]
 	marginLeft := len(title)/2 - 1
 	startLine := s.cols/2 - marginLeft
