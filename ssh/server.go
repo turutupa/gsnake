@@ -114,32 +114,13 @@ func (s *SshServer) handleChannel(newChannel ssh.NewChannel) {
 		var buf [1]byte
 		for {
 			_, err := channel.Read(buf[:])
-			output := string(buf[0]) + "\n"
-			term.Write([]byte(output))
 			if err != nil {
 				log.Error("Could not read from channel", err)
 				return
 			}
-
 			// Use the input character, stored in buf[0]
 		}
 	}()
-}
-
-func pollEvents(channel ssh.Channel) {
-	for {
-		// Read input without echoing it to the terminal
-		bytePassword, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-		if err != nil {
-			log.Error("Failed to read user input: ", err)
-			return
-		}
-		// Convert byte slice to string
-		password := string(bytePassword)
-		log.Info("password: " + password)
-		// Process the user input
-		// processUserInput(password)
-	}
 }
 
 func (s *SshServer) getKeyPairOrDefault(privateKeyPath, publicKeyPath string) ([]byte, []byte, bool) {
