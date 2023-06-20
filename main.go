@@ -1,40 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"io"
 	"turutupa/gsnake/game"
+	"turutupa/gsnake/ssh"
 )
 
 func main() {
+	port := 2222
+	sshServer := ssh.NewSshServer(port, snakeHandler)
+	sshServer.Run()
+}
+
+func snakeHandler(writer io.Writer) ssh.Runnable {
+	// inject ssh/local cli writer to screen
 	rows := 20
 	cols := 55
 	term := gsnake.NewTerm()
-	screen := gsnake.NewScreen(rows, cols)
+	screen := gsnake.NewScreen(writer, rows, cols)
 	scoreboard, _ := gsnake.NewScoreboard()
 	snake := gsnake.NewSnake(screen)
 	fruit := gsnake.NewFruit(rows, cols)
-	game := gsnake.NewGame(term, screen, scoreboard, fruit, snake, getSnakeSpeed())
-	game.Run()
-}
-
-func getSnakeSpeed() gsnake.Speed {
-	args := os.Args
-	var speed gsnake.Speed = gsnake.NORMAL // Default speed
-	if len(args) >= 2 {
-		arg := args[1]
-		switch arg {
-		case "--easy":
-			speed = gsnake.EASY
-		case "--normal":
-			speed = gsnake.NORMAL
-		case "--hard":
-			speed = gsnake.HARD
-		case "--insanity":
-			speed = gsnake.INSANITY
-		default:
-			fmt.Println("Invalid speed option. Using default speed: Normal")
-		}
-	}
-	return speed
+	game := gsnake.NewGame(term, screen, scoreboard, fruit, snake)
+	return game
 }

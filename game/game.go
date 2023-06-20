@@ -51,7 +51,6 @@ func NewGame(
 	scoreboard *Scoreboard,
 	fruit *Fruit,
 	snake *Snake,
-	speed Speed,
 ) *Game {
 	game := &Game{
 		screen:             screen,
@@ -59,19 +58,12 @@ func NewGame(
 		scoreboard:         scoreboard,
 		fruit:              fruit,
 		snake:              snake,
-		speed:              int(speed),
+		speed:              0,
 		running:            true,
 		score:              0,
 		state:              MAIN_MENU,
 		selectedMenuOption: 2,
 		selectChan:         make(chan bool),
-	}
-	term.OnExit = func() {
-		if game.state == MAIN_MENU {
-			game.Term.clearTerminal()
-			os.Exit(0)
-		}
-		game.restart()
 	}
 	return game
 }
@@ -195,6 +187,8 @@ func (g *Game) userActionMainMenu(event rune) {
 			os.Exit(0)
 		}
 		g.selectChan <- true
+	} else if event == 'q' {
+		g.onExit()
 	}
 }
 
@@ -216,6 +210,8 @@ func (g *Game) userActionSnake(event rune) {
 		if pointing != LEFT {
 			g.snake.head.pointing = RIGHT
 		}
+	} else if event == 'q' {
+		g.onExit()
 	}
 }
 
@@ -223,4 +219,12 @@ func (g *Game) userActionScoreboard(event rune) {
 	if event == '\n' || event == 'q' {
 		g.selectChan <- true
 	}
+}
+
+func (g *Game) onExit() {
+	if g.state == MAIN_MENU {
+		g.Term.clearTerminal()
+		os.Exit(0)
+	}
+	g.restart()
 }

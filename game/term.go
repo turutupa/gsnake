@@ -12,10 +12,8 @@ import (
 )
 
 type Term struct {
-	sig         chan os.Signal
-	input       chan rune
-	OnExit      func()
-	OnForceExit func()
+	sig   chan os.Signal
+	input chan rune
 }
 
 func NewTerm() *Term {
@@ -23,26 +21,14 @@ func NewTerm() *Term {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	input := make(chan rune)
 	go readInput(input)
-	defaultExitFn := func() {
-		fmt.Println("Exiting!")
-	}
 	return &Term{
-		sig:    sig,
-		input:  input,
-		OnExit: defaultExitFn,
+		sig:   sig,
+		input: input,
 	}
 }
 
 func (t *Term) PollEvents() rune {
-	select {
-	case r := <-t.input:
-		if r == 'q' {
-			if t.OnExit != nil {
-				t.OnExit()
-			}
-		}
-		return r
-	}
+	return <-t.input
 }
 
 func readInput(input chan<- rune) {

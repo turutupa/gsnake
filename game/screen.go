@@ -2,6 +2,7 @@ package gsnake
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -14,13 +15,14 @@ const BOTTOM_RIGHT rune = '╯'
 const HORIZONTAL rune = '─'
 
 type Screen struct {
+	writer        io.Writer
 	rows          int
 	cols          int
 	matrix        [][]rune
 	isFirstRender bool
 }
 
-func NewScreen(rows int, cols int) *Screen {
+func NewScreen(writer io.Writer, rows int, cols int) *Screen {
 	var matrix [][]rune
 	for i := 0; i < rows; i++ {
 		row := make([]rune, cols)
@@ -48,11 +50,11 @@ func NewScreen(rows int, cols int) *Screen {
 			matrix[i][j] = cell
 		}
 	}
-	return &Screen{rows, cols, matrix, true}
+	return &Screen{writer, rows, cols, matrix, true}
 }
 
 func (s *Screen) restart() {
-	newScreen := NewScreen(s.rows, s.cols)
+	newScreen := NewScreen(s.writer, s.rows, s.cols)
 	s.matrix = newScreen.matrix
 	s.isFirstRender = newScreen.isFirstRender
 }
@@ -300,15 +302,15 @@ func (s *Screen) update(fruit *Fruit, node *Node, score int) {
 }
 
 func (s *Screen) print(row, col int, r rune) {
-	fmt.Printf("\033[%d;%dH%c", row+1, col+1, r)
+	fmt.Fprintf(s.writer, "\033[%d;%dH%c", row+1, col+1, r)
 }
 
 func (s *Screen) printBold(row, col int, r string) {
-	fmt.Printf("\033[%d;%dH\033[1m%s\033[0m", row+1, col+1, r)
+	fmt.Fprintf(s.writer, "\033[%d;%dH\033[1m%s\033[0m", row+1, col+1, r)
 }
 
 func (s *Screen) finishPrint() {
-	fmt.Printf("\033[%d;%dH", s.rows+2, 0)
+	fmt.Fprintf(s.writer, "\033[%d;%dH", s.rows+1, 0)
 }
 
 func (s *Screen) GameOver() {
