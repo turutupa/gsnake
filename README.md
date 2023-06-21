@@ -2,7 +2,7 @@
 
 Table of Contents 
 - [Demo](#demo)
-- [Install](#install)
+- [Installation](#installation)
 - [How to run](#how-to-run)
 - [Architecture](#architecture)
 - [Roadmap](#roadmap)
@@ -16,8 +16,8 @@ Currently running on `turutupa.com`. You may play gsnake using
 $ ssh <your_username>@turutupa.com -p 5555
 ```
 
-## Install
-Execute `install.sh` script 
+## Installation
+Execute `install.sh` script
 
 ```bash
 $ ./install.sh
