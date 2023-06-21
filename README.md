@@ -73,7 +73,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 5. Open a Pull Request
 
 ## Contact
-Feel free to send me an email to albertodelgadocabrera@gmail.com or schedule a call at cal.com/alber
+Feel free to send me an email to albertodelgadocabrera@gmail.com or schedule a call at <a href="cal.com/alber">cal.com/alber</a>
 
 ## Donations
 I'm trying to run a server with the game running so donations would help greatly into paying it. Additionally, it may get laggy for users connecting from far away so I'd love to be able to have servers running on different zones.
