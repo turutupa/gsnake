@@ -44,21 +44,23 @@ To be updated.
 
 ## Roadmap
 - [ ] Update README with latest changes
+    - [ ] Update architecture with SSH details
 - [x] ~~Add bash script to install/run the game~~
 - [x] ~~Finish README.md including how to install on machine~~
 - [ ] Inifite mode? Where you can only die if snake hits itself
 - [ ] Improve leaderboard 
     - [x] ~~Add some borders~~
     - [ ] Add the option to input username
-    - [ ] See top scores by (difficulty) mode
+    - [ ] See top scores by difficulty/mode
 - [x] ~~Add main menu~~
     - [x] ~~Be able to select difficulty~~
 - [ ] Super fruit! Add a super fruit (maybe every 5 fruit pieces?) that will appear for an X amount of time
-    - If you eat it in that time snake will not get longer, 
-    - otherwise it simply disappears
-- [x] ~~Completely new project would involve to conver this to a SSH application~~
+    1. If you eat it in that time snake will not get longer, 
+    2. otherwise it simply disappears
+- [x] ~~Completely new project would involve to convert this to a SSH application~~
 - [ ] Versus mode! Let players fight!
     - [ ] Create rooms/lobbies
+    - [ ] Create new game logic for multiplayer. This could also work for local mode (1 keyboard)
     - [ ] Power ups? // not in the near future
 
 ## Contributing
