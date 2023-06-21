@@ -1,5 +1,6 @@
 package events
 
 type EventPoller interface {
-	PollEvents() byte
+	Poll() byte
+	Close()
 }

@@ -2,7 +2,6 @@ package gsnake
 
 import (
 	"math"
-	"os"
 	"time"
 
 	"turutupa/gsnake/events"
@@ -72,13 +71,24 @@ func NewGame(
 
 func (g *Game) Run() {
 	go g.executeUserInput()
-	for {
+	for g.running {
 		for g.state == MAIN_MENU {
 			g.mainMenu()
 			<-g.selectChan // used for blocking
+			if !g.running {
+				break
+			}
 		}
 		g.runGame()
 	}
+
+	g.screen.clearTerminal()
+}
+
+func (g *Game) Quit() {
+	g.running = false
+	g.eventPoller.Close()
+	g.selectChan <- true
 }
 
 func (g *Game) restart() {
@@ -162,8 +172,8 @@ func (g *Game) intersects() bool {
 }
 
 func (g *Game) executeUserInput() {
-	for {
-		event := rune(g.eventPoller.PollEvents())
+	for g.running {
+		event := rune(g.eventPoller.Poll())
 		if g.state == MAIN_MENU {
 			g.userActionMainMenu(event)
 		} else if g.state == PLAYING {
@@ -177,21 +187,20 @@ func (g *Game) executeUserInput() {
 func (g *Game) userActionMainMenu(event rune) {
 	if event == 'w' || event == 'k' || int(event) == ARROW_UP {
 		g.selectedMenuOption = int(math.Max(float64(0), float64(g.selectedMenuOption-1)))
-		g.selectChan <- true
 	} else if event == 's' || event == 'j' || int(event) == ARROW_DOWN {
 		g.selectedMenuOption = int(math.Min(float64(len(MENU_OPTIONS)-1), float64(g.selectedMenuOption+1)))
-		g.selectChan <- true
 	} else if g.isEnterKey(event) {
+		if g.selectedMenuOption == len(MENU_OPTIONS)-1 {
+			g.onExit()
+			g.selectChan <- true
+			return
+		}
 		g.speed = int(MENU_OPTIONS[g.selectedMenuOption])
 		g.state = PLAYING
-		if g.selectedMenuOption == len(MENU_OPTIONS)-1 {
-			g.screen.clearTerminal()
-			os.Exit(0)
-		}
-		g.selectChan <- true
 	} else if event == 'q' {
 		g.onExit()
 	}
+	g.selectChan <- true
 }
 
 func (g *Game) userActionSnake(event rune) {
@@ -237,7 +246,8 @@ func (g *Game) isEnterKey(input rune) bool {
 func (g *Game) onExit() {
 	if g.state == MAIN_MENU {
 		g.screen.clearTerminal()
-		os.Exit(0)
+		g.Quit()
+		return
 	}
 	g.restart()
 }

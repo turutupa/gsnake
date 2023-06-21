@@ -73,23 +73,30 @@ func (s *SshServer) Run(sshAppInjector func(io.Writer, events.EventPoller) SshAp
 			log.Error("Failed to handshake (%s)", err)
 			continue
 		}
-		log.Info("User connected from " + netConn.RemoteAddr().String() + " " + string(sshConn.ClientVersion()))
+		username := sshConn.User()
+		log.Info(username + " connected from " + netConn.RemoteAddr().String() + " " + string(sshConn.ClientVersion()))
 		go ssh.DiscardRequests(reqs)
 		// go s.handleChannels(chans, sshAppInjector) // propagating channels and sshApp
 		safeGoRoutine(func() {
-			s.handleChannels(chans, sshAppInjector)
+			s.handleChannels(username, chans, sshAppInjector)
 		})
 	}
 }
 
-func (s *SshServer) handleChannels(chans <-chan ssh.NewChannel, sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
+func (s *SshServer) handleChannels(
+	username string,
+	chans <-chan ssh.NewChannel,
+	sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
 	// Service the incoming Channel channel in go routine
 	for newChannel := range chans {
-		go s.handleChannel(newChannel, sshAppInjector) // propagating channel and sshApp
+		go s.handleChannel(username, newChannel, sshAppInjector) // propagating channel and sshApp
 	}
 }
 
-func (s *SshServer) handleChannel(newChannel ssh.NewChannel, sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
+func (s *SshServer) handleChannel(
+	username string,
+	newChannel ssh.NewChannel,
+	sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
 	// Channels have a type, depending on the application level protocol intended.
 	// In the case of a shell, the type is "session" and ServerShell may be used to present a simple terminal interface.
 	if t := newChannel.ChannelType(); t != "session" {
@@ -108,10 +115,10 @@ func (s *SshServer) handleChannel(newChannel ssh.NewChannel, sshAppInjector func
 	sshInputReader := NewSshInputReader(channel)
 	sshApp := sshAppInjector(term, sshInputReader)
 
-	// Run your snake game
-	// You can write game output to the terminal using the term.Write() function
-	// and read user input from the terminal using the term.ReadLine() function
+	// Run SSH APP
 	sshApp.Run()
+	channel.Close()
+	log.Info(username + " disconnected")
 }
 
 func safeGoRoutine(fn func()) {

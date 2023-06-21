@@ -24,8 +24,16 @@ func NewTerm() *Term {
 	return term
 }
 
-func (t *Term) PollEvents() byte {
+func (t *Term) Poll() byte {
 	return <-t.input
+}
+
+func (t *Term) Close() {
+	select {
+	case _ = <-t.input:
+		close(t.input)
+	default:
+	}
 }
 
 func (t *Term) readInput() {

@@ -2,7 +2,6 @@ package ssh
 
 import (
 	"time"
-	"turutupa/gsnake/log"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -19,8 +18,16 @@ func NewSshInputReader(channel ssh.Channel) *SshInputReader {
 }
 
 // events poller
-func (s *SshInputReader) PollEvents() byte {
+func (s *SshInputReader) Poll() byte {
 	return <-s.input
+}
+
+func (s *SshInputReader) Close() {
+	select {
+	case _ = <-s.input:
+		close(s.input)
+	default:
+	}
 }
 
 func (s *SshInputReader) readInput() {
@@ -29,7 +36,6 @@ func (s *SshInputReader) readInput() {
 		_, err := s.channel.Read(buf[:])
 		if err != nil {
 			close(s.input)
-			log.Error("Could not read from channel", err)
 			return
 		}
 		s.input <- buf[0]
