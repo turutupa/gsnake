@@ -1,8 +1,6 @@
 package ssh
 
 import (
-	"time"
-
 	"golang.org/x/crypto/ssh"
 )
 
@@ -39,6 +37,5 @@ func (s *SshInputReader) readInput() {
 			return
 		}
 		s.input <- buf[0]
-		time.Sleep(40 * time.Millisecond)
 	}
 }

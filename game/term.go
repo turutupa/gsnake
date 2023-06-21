@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"golang.org/x/sys/unix"
 )
@@ -58,7 +57,6 @@ func (t *Term) readInput() {
 			return
 		}
 		t.input <- buf[0]
-		time.Sleep(40 * time.Millisecond)
 	}
 }
 
