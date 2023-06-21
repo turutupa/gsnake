@@ -70,7 +70,7 @@ func (s *SshServer) Run(sshAppInjector func(io.Writer, events.EventPoller) SshAp
 		// Before use, a handshake must be performed on the incoming net.Conn
 		sshConn, chans, reqs, err := ssh.NewServerConn(netConn, config)
 		if err != nil {
-			log.Error("Failed to handshake (%s)", err)
+			log.Error("Failed to handshake ", err)
 			continue
 		}
 		username := sshConn.User()

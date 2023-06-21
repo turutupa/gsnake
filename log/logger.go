@@ -34,7 +34,7 @@ func Log(message string) {
 }
 
 func printLog(logType, color, message string) {
-	timestamp := time.Now().Format("[2006-01-02] [15:04:05]")
+	timestamp := time.Now().Format("[2006-01-02][15:04:05]")
 	logTypeBold := fmt.Sprintf("\033[1m%s\033[0m", logType)
 	fmt.Printf("%s %s%s%s %s\n", timestamp, color, logTypeBold, colorReset, message)
 }
