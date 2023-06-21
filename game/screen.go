@@ -86,6 +86,10 @@ func (s *Screen) init() {
 	}
 }
 
+func (s *Screen) clearTerminal() {
+	s.writer.Write([]byte("\033[H\033[2J"))
+}
+
 func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.print(head.x, head.y, ' ')
 	s.print(tail.x, tail.y, ' ')
@@ -338,7 +342,7 @@ func (s *Screen) GameOver() {
 
                 PRESS ENTER TO CONTINUE
 `
-	fmt.Println(gameOver)
+	s.writer.Write([]byte(gameOver))
 }
 
 func (s *Screen) printLogo() {
@@ -355,5 +359,5 @@ func (s *Screen) printLogo() {
       \$$$$$$  |                                                  
        \______/
   `
-	fmt.Println(logo)
+	s.writer.Write([]byte(logo))
 }

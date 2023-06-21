@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"turutupa/gsnake/events"
 	"turutupa/gsnake/log"
 
 	"golang.org/x/crypto/ssh"
@@ -22,7 +23,7 @@ import (
 const DEFAULT_PRIV_KEY_FILENAME = "gsnake_ed25519"
 const DEFAULT_PUB_KEY_FILENAME = "gsnake_ed25519.pub"
 
-type Runnable interface {
+type SshApp interface {
 	Run()
 }
 
@@ -30,11 +31,11 @@ type SshServer struct {
 	port int
 }
 
-func NewSshServer(port int, requestHandler func(io.Writer) Runnable) *SshServer {
+func NewSshServer(port int) *SshServer {
 	return &SshServer{port}
 }
 
-func (s *SshServer) Run() {
+func (s *SshServer) Run(sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
 	privateBytes, _, ok := s.getKeyPairOrDefault(DEFAULT_PRIV_KEY_FILENAME, DEFAULT_PUB_KEY_FILENAME)
 	if !ok {
 		log.Error("No crypto keys found", nil)
@@ -74,18 +75,21 @@ func (s *SshServer) Run() {
 		}
 		log.Info("User connected from " + netConn.RemoteAddr().String() + " " + string(sshConn.ClientVersion()))
 		go ssh.DiscardRequests(reqs)
-		go s.handleChannels(chans)
+		// go s.handleChannels(chans, sshAppInjector) // propagating channels and sshApp
+		safeGoRoutine(func() {
+			s.handleChannels(chans, sshAppInjector)
+		})
 	}
 }
 
-func (s *SshServer) handleChannels(chans <-chan ssh.NewChannel) {
+func (s *SshServer) handleChannels(chans <-chan ssh.NewChannel, sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
 	// Service the incoming Channel channel in go routine
 	for newChannel := range chans {
-		go s.handleChannel(newChannel)
+		go s.handleChannel(newChannel, sshAppInjector) // propagating channel and sshApp
 	}
 }
 
-func (s *SshServer) handleChannel(newChannel ssh.NewChannel) {
+func (s *SshServer) handleChannel(newChannel ssh.NewChannel, sshAppInjector func(io.Writer, events.EventPoller) SshApp) {
 	// Channels have a type, depending on the application level protocol intended.
 	// In the case of a shell, the type is "session" and ServerShell may be used to present a simple terminal interface.
 	if t := newChannel.ChannelType(); t != "session" {
@@ -101,25 +105,23 @@ func (s *SshServer) handleChannel(newChannel ssh.NewChannel) {
 
 	// Set up terminal emulation
 	term := terminal.NewTerminal(channel, "")
+	sshInputReader := NewSshInputReader(channel)
+	sshApp := sshAppInjector(term, sshInputReader)
 
-	// Start your snake game in a goroutine
-	go func() {
-		// Run your snake game
-		// You can write game output to the terminal using the term.Write() function
-		// and read user input from the terminal using the term.ReadLine() function
-		term.Write([]byte("hello everyone!"))
-	}()
+	// Run your snake game
+	// You can write game output to the terminal using the term.Write() function
+	// and read user input from the terminal using the term.ReadLine() function
+	sshApp.Run()
+}
 
+func safeGoRoutine(fn func()) {
 	go func() {
-		var buf [1]byte
-		for {
-			_, err := channel.Read(buf[:])
-			if err != nil {
-				log.Error("Could not read from channel", err)
-				return
+		defer func() {
+			if r := recover(); r != nil {
+				log.Error("Recovered from panic in goroutine", nil)
 			}
-			// Use the input character, stored in buf[0]
-		}
+		}()
+		fn()
 	}()
 }
 

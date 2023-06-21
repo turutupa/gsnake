@@ -4,6 +4,8 @@ import (
 	"math"
 	"os"
 	"time"
+
+	"turutupa/gsnake/events"
 )
 
 type Speed int
@@ -32,8 +34,8 @@ const (
 )
 
 type Game struct {
-	screen *Screen
-	*Term
+	screen             *Screen
+	eventPoller        events.EventPoller
 	scoreboard         *Scoreboard
 	fruit              *Fruit
 	snake              *Snake
@@ -46,7 +48,7 @@ type Game struct {
 }
 
 func NewGame(
-	term *Term,
+	term events.EventPoller,
 	screen *Screen,
 	scoreboard *Scoreboard,
 	fruit *Fruit,
@@ -54,7 +56,7 @@ func NewGame(
 ) *Game {
 	game := &Game{
 		screen:             screen,
-		Term:               term,
+		eventPoller:        term,
 		scoreboard:         scoreboard,
 		fruit:              fruit,
 		snake:              snake,
@@ -87,12 +89,12 @@ func (g *Game) restart() {
 }
 
 func (g *Game) mainMenu() {
-	g.Term.clearTerminal()
+	g.screen.clearTerminal()
 	g.screen.renderMainMenu(g.selectedMenuOption)
 }
 
 func (g *Game) runGame() {
-	g.Term.clearTerminal()
+	g.screen.clearTerminal()
 	g.screen.init()
 	for g.state == PLAYING {
 		g.screen.clear(g.fruit, g.snake.head, g.snake.tail, g.score)
@@ -114,7 +116,7 @@ func (g *Game) runGame() {
 		if g.intersects() {
 			scores, ok := g.scoreboard.update(g.score)
 			time.Sleep(1 * time.Second)
-			g.Term.clearTerminal()
+			g.screen.clearTerminal()
 			g.screen.GameOver()
 			if ok {
 				g.screen.renderScoreboard(scores)
@@ -161,7 +163,7 @@ func (g *Game) intersects() bool {
 
 func (g *Game) executeUserInput() {
 	for {
-		event := g.PollEvents()
+		event := rune(g.eventPoller.PollEvents())
 		if g.state == MAIN_MENU {
 			g.userActionMainMenu(event)
 		} else if g.state == PLAYING {
@@ -179,11 +181,11 @@ func (g *Game) userActionMainMenu(event rune) {
 	} else if event == 's' || event == 'j' || int(event) == ARROW_DOWN {
 		g.selectedMenuOption = int(math.Min(float64(len(MENU_OPTIONS)-1), float64(g.selectedMenuOption+1)))
 		g.selectChan <- true
-	} else if event == '\n' {
+	} else if g.isEnterKey(event) {
 		g.speed = int(MENU_OPTIONS[g.selectedMenuOption])
 		g.state = PLAYING
 		if g.selectedMenuOption == len(MENU_OPTIONS)-1 {
-			g.Term.clearTerminal()
+			g.screen.clearTerminal()
 			os.Exit(0)
 		}
 		g.selectChan <- true
@@ -216,14 +218,25 @@ func (g *Game) userActionSnake(event rune) {
 }
 
 func (g *Game) userActionScoreboard(event rune) {
-	if event == '\n' || event == 'q' {
+	if event == '\n' || event == 'q' || g.isEnterKey(event) {
 		g.selectChan <- true
 	}
 }
 
+func (g *Game) isEnterKey(input rune) bool {
+	in := byte(input)
+	enterKeys := [2]byte{'\n', '\r'} // Byte representations of "enter" keys
+	for _, key := range enterKeys {
+		if in == key {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *Game) onExit() {
 	if g.state == MAIN_MENU {
-		g.Term.clearTerminal()
+		g.screen.clearTerminal()
 		os.Exit(0)
 	}
 	g.restart()

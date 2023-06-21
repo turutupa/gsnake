@@ -3,7 +3,6 @@ package gsnake
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -13,25 +12,23 @@ import (
 
 type Term struct {
 	sig   chan os.Signal
-	input chan rune
+	input chan byte
 }
 
 func NewTerm() *Term {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	input := make(chan rune)
-	go readInput(input)
-	return &Term{
-		sig:   sig,
-		input: input,
-	}
+	input := make(chan byte)
+	term := &Term{sig: sig, input: input}
+	go term.readInput()
+	return term
 }
 
-func (t *Term) PollEvents() rune {
+func (t *Term) PollEvents() byte {
 	return <-t.input
 }
 
-func readInput(input chan<- rune) {
+func (t *Term) readInput() {
 	oldState, err := getTermios(int(os.Stdin.Fd()))
 	if err != nil {
 		fmt.Println("Error getting terminal attributes: ", err)
@@ -49,10 +46,10 @@ func readInput(input chan<- rune) {
 	for {
 		_, err := os.Stdin.Read(buf[:])
 		if err != nil {
-			close(input)
+			close(t.input)
 			return
 		}
-		input <- rune(buf[0])
+		t.input <- buf[0]
 		time.Sleep(40 * time.Millisecond)
 	}
 }
@@ -70,10 +67,4 @@ func setTermios(fd int, termios *unix.Termios) error {
 		return fmt.Errorf("ioctl set termios: %v", err)
 	}
 	return nil
-}
-
-func (t *Term) clearTerminal() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
 }
