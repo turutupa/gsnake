@@ -26,18 +26,23 @@ I'm more than happyp if you want to help out by either bringing new cool ideas o
 Feel free to post new issues or we can even schedule a call.
 
 ## TO DO
-- ~~Add bash script to install/run the game~~
-- ~~Finish README.md including how to install on machine~~
-- Improve leaderboard 
-    - ~~Add some borders~~
-    - Add the option to input username
-    - See top scores by (difficulty) mode
-- ~~Add main menu~~
-    - ~~Be able to select difficulty~~
-- Super fruit! Add a super fruit (maybe every 5 fruit pieces?) that will appear for an X amount of time
+- [ ] Update README with latest changes
+- [x] ~~Add bash script to install/run the game~~
+- [x] ~~Finish README.md including how to install on machine~~
+- [ ] Inifite mode? Where you can only die if snake hits itself
+- [ ] Improve leaderboard 
+    - [x] ~~Add some borders~~
+    - [ ] Add the option to input username
+    - [ ] See top scores by (difficulty) mode
+- [x] ~~Add main menu~~
+    - [x] ~~Be able to select difficulty~~
+- [ ] Super fruit! Add a super fruit (maybe every 5 fruit pieces?) that will appear for an X amount of time
     - If you eat it in that time snake will not get longer, 
     - otherwise it simply disappears
-- Completely new project would involve to conver this to a SSH application 
+- [x] ~~Completely new project would involve to conver this to a SSH application~~
+- [ ] Versus mode! Let players fight!
+    - [ ] Create rooms/lobbies
+    - [ ] Power ups? // not in the near future
 
 ## Donations
 I'm trying to run a server with the game running so donations would help greatly into paying it. Additionally, it may get laggy for users connecting from far away so I'd love to be able to have servers running on different zones.
