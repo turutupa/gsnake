@@ -1,31 +1,48 @@
 ![GSNAKE](media/gsnake.png)
 
-## Install && Run 
+Table of Contents 
+- [Demo](#demo)
+- [Install](#install)
+- [How to run](#how-to-run)
+- [Architecture](#architecture)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Contact](#contact)
+- [Donations](#donations)
+
+## Demo 
+Currently running on `turutupa.com`. You may join using 
+```bash
+$ ssh <your_username>@turutupa.com -p 5555
+```
+
+## Install
 Execute `install.sh` script 
 
 ```bash
 $ ./install.sh
 ```
 
-After you've installed you can run
+## How to run
+### Running locally
+Upon installation you can start playing locally by running 
 ```bash 
 $ gsnake 
 ```
 
+### Hosting SSH server
+If you want to self-host a gsnake SSH server you can run it by using the `-m` and `-p` flags which stand for `mode` and `port`. Port number defaults to `5555` if not specified.
+
+```bash
+$ gsnake -m ssh -p <port_number>
+```
+
 ## Architecture 
-Representative schematic, doesn't reflect 100% the code but the main components.
+To be updated.
 
 ![architecture](media/architecture.png)
 
-## Motivation
-The purpose of this project is merely educational and fun. Originally my objective was to create an SSH app out of it - still hoping to build it - but most importantly, learn. That is why no external libraries were used, like `tcell`, in order to capture user input or rendering the graphics. Everything is done natively in go.
-
-## Contribute
-I'm more than happyp if you want to help out by either bringing new cool ideas or by implementing some of the pending features (see more in the TO DO list down below).
-
-Feel free to post new issues or we can even schedule a call.
-
-## TO DO
+## Roadmap
 - [ ] Update README with latest changes
 - [x] ~~Add bash script to install/run the game~~
 - [x] ~~Finish README.md including how to install on machine~~
@@ -43,6 +60,20 @@ Feel free to post new issues or we can even schedule a call.
 - [ ] Versus mode! Let players fight!
     - [ ] Create rooms/lobbies
     - [ ] Power ups? // not in the near future
+
+## Contributing
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". Don't forget to give the project a star! Thanks again!
+
+- Fork the Project
+- Create your Feature Branch (git checkout -b feature/AmazingFeature)
+- Commit your Changes (git commit -m 'Add some AmazingFeature')
+- Push to the Branch (git push origin feature/AmazingFeature)
+- Open a Pull Request
+
+## Contact
+Feel free to send me an email to albertodelgadocabrera@gmail.com or schedule a call at cal.com/alber
 
 ## Donations
 I'm trying to run a server with the game running so donations would help greatly into paying it. Additionally, it may get laggy for users connecting from far away so I'd love to be able to have servers running on different zones.
