@@ -33,7 +33,7 @@ func NewSnake(screen *Screen) *Snake {
 	snake := &Snake{}
 	snake.head = &Node{
 		x:         screen.rows / 2,
-		y:         screen.cols / 2,
+		y:         screen.cols / 5,
 		pointing:  RIGHT,
 		prev:      nil,
 		next:      nil,
