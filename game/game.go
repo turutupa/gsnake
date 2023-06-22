@@ -204,22 +204,22 @@ func (g *Game) userActionMainMenu(event rune) {
 }
 
 func (g *Game) userActionSnake(event rune) {
-	pointing := g.snake.head.pointing
+	pointing := g.snake.pointsTo()
 	if event == 'w' || int(event) == ARROW_UP {
 		if pointing != DOWN {
-			g.snake.head.pointing = UP
+			g.snake.point(UP)
 		}
 	} else if event == 's' || int(event) == ARROW_DOWN {
 		if pointing != UP {
-			g.snake.head.pointing = DOWN
+			g.snake.point(DOWN)
 		}
 	} else if event == 'a' || int(event) == ARROW_LEFT {
 		if pointing != RIGHT {
-			g.snake.head.pointing = LEFT
+			g.snake.point(LEFT)
 		}
 	} else if event == 'd' || int(event) == ARROW_RIGHT {
 		if pointing != LEFT {
-			g.snake.head.pointing = RIGHT
+			g.snake.point(RIGHT)
 		}
 	} else if event == 'q' {
 		g.onExit()

@@ -15,13 +15,14 @@ type Snake struct {
 }
 
 type Node struct {
-	x         int
-	y         int
-	pointing  Pointing
-	prev      *Node
-	next      *Node
-	render    rune
-	validated bool
+	x           int
+	y           int
+	pointing    Pointing
+	tmpPointing Pointing
+	prev        *Node
+	next        *Node
+	render      rune
+	validated   bool
 }
 
 type Direction struct {
@@ -32,24 +33,26 @@ type Direction struct {
 func NewSnake(screen *Screen) *Snake {
 	snake := &Snake{}
 	snake.head = &Node{
-		x:         screen.rows / 2,
-		y:         screen.cols / 5,
-		pointing:  RIGHT,
-		prev:      nil,
-		next:      nil,
-		render:    HORIZONTAL,
-		validated: true,
+		x:           screen.rows / 2,
+		y:           screen.cols / 5,
+		pointing:    RIGHT,
+		tmpPointing: RIGHT,
+		prev:        nil,
+		next:        nil,
+		render:      HORIZONTAL,
+		validated:   true,
 	}
 	node := snake.head
 	for i := 0; i < 6; i++ { // initial length of 7
 		node.next = &Node{
-			x:         node.x,
-			y:         node.y - 1,
-			pointing:  RIGHT,
-			prev:      node,
-			next:      nil,
-			render:    HORIZONTAL,
-			validated: true,
+			x:           node.x,
+			y:           node.y - 1,
+			pointing:    RIGHT,
+			tmpPointing: RIGHT,
+			prev:        node,
+			next:        nil,
+			render:      HORIZONTAL,
+			validated:   true,
 		}
 		node = node.next
 	}
@@ -63,28 +66,38 @@ func (s *Snake) restart(screen *Screen) {
 	s.tail = newSnake.tail
 }
 
+func (s *Snake) pointsTo() Pointing {
+	return s.head.pointing
+}
+
+func (s *Snake) point(point Pointing) {
+	s.head.tmpPointing = point
+}
+
 func (s *Snake) move() {
 	node := s.head
 	x_prev := node.x
 	y_prev := node.y
-	pointing_prev := node.pointing
-	if node.pointing == UP {
+	pointing_prev := node.tmpPointing
+	if node.tmpPointing == UP {
 		node.x = node.x - 1
-	} else if node.pointing == RIGHT {
+	} else if node.tmpPointing == RIGHT {
 		node.y = node.y + 1
-	} else if node.pointing == LEFT {
+	} else if node.tmpPointing == LEFT {
 		node.y = node.y - 1
 	} else {
 		node.x = node.x + 1
 	}
+	node.pointing = node.tmpPointing
 	node = node.next
 	for node != nil {
-		pointing_tmp := node.pointing
+		pointing_tmp := node.tmpPointing
 		x_tmp := node.x
 		y_tmp := node.y
 		node.x = x_prev
 		node.y = y_prev
 		node.pointing = pointing_prev
+		node.tmpPointing = pointing_prev
 		x_prev = x_tmp
 		y_prev = y_tmp
 		pointing_prev = pointing_tmp
