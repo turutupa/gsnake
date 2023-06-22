@@ -109,17 +109,17 @@ func (s *SshServer) handleChannel(
 		return
 	}
 	defer channel.Close()
+	defer log.Info(username + " disconnected")
 
 	// Set up terminal emulation
 	term := terminal.NewTerminal(channel, "")
 	sshInputReader := NewSshInputReader(channel)
 	sshApp := sshAppInjector(term, sshInputReader)
 
-	//
 	go s.activityMonitor(term, sshInputReader, channel)
 	// Run SSH APP
 	sshApp.Run()
-	log.Info(username + " disconnected")
+	s.closeChannel(channel)
 }
 
 func (s *SshServer) activityMonitor(term *term.Terminal, inputReader *SshInputReader, channel ssh.Channel) {
