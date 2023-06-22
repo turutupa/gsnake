@@ -123,7 +123,7 @@ func (s *SshServer) handleChannel(
 }
 
 func (s *SshServer) activityMonitor(term *term.Terminal, inputReader *SshInputReader, channel ssh.Channel) {
-	idleTimeout := 1 * time.Minute
+	idleTimeout := 5 * time.Minute
 	checkTimeout := 1 * time.Minute
 	for {
 		select {
