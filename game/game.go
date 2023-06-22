@@ -246,19 +246,19 @@ func (g *Game) userActionLeaderboardMenu(event rune) {
 
 func (g *Game) userActionSnake(event rune) {
 	pointing := g.snake.pointsTo()
-	if event == 'w' || int(event) == ARROW_UP {
+	if g.isUp(event) {
 		if pointing != DOWN {
 			g.snake.point(UP)
 		}
-	} else if event == 's' || int(event) == ARROW_DOWN {
+	} else if g.isDown(event) {
 		if pointing != UP {
 			g.snake.point(DOWN)
 		}
-	} else if event == 'a' || int(event) == ARROW_LEFT {
+	} else if g.isLeft(event) {
 		if pointing != RIGHT {
 			g.snake.point(LEFT)
 		}
-	} else if event == 'd' || int(event) == ARROW_RIGHT {
+	} else if g.isRight(event) {
 		if pointing != LEFT {
 			g.snake.point(RIGHT)
 		}
@@ -267,6 +267,30 @@ func (g *Game) userActionSnake(event rune) {
 	}
 }
 
+// Accepted keys for up/down/left and right are
+// - wasd
+// - hjkl
+// - arrow keys
+func (g *Game) isUp(event rune) bool {
+	return event == 'w' || int(event) == ARROW_UP || event == 'k'
+}
+
+func (g *Game) isDown(event rune) bool {
+	return event == 's' || int(event) == ARROW_DOWN || event == 'j'
+}
+
+func (g *Game) isLeft(event rune) bool {
+	return event == 'a' || int(event) == ARROW_LEFT || event == 'h'
+}
+
+func (g *Game) isRight(event rune) bool {
+	return event == 'd' || int(event) == ARROW_RIGHT || event == 'l'
+}
+
+// enter keys are
+// - enter
+// - spacebar
+// - \r which I'm not sure which key is that tbh
 func (g *Game) isEnterKey(input rune) bool {
 	in := byte(input)
 	enterKeys := [2]byte{'\n', '\r'} // Byte representations of "enter" keys
@@ -274,6 +298,9 @@ func (g *Game) isEnterKey(input rune) bool {
 		if in == key {
 			return true
 		}
+	}
+	if int(in) == 32 { // space
+		return true
 	}
 	return false
 }
