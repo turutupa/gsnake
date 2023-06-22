@@ -107,7 +107,13 @@ func (g *Game) Run() {
 func (g *Game) Stop() {
 	g.running = false
 	g.eventPoller.Close()
-	close(g.selectChan)
+	select {
+	case _, ok := <-g.selectChan:
+		if ok {
+			close(g.selectChan)
+		}
+	default:
+	}
 }
 
 func (g *Game) restart() {
