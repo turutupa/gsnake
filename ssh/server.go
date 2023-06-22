@@ -116,13 +116,13 @@ func (s *SshServer) handleChannel(
 	sshInputReader := NewSshInputReader(channel)
 	sshApp := sshAppInjector(term, sshInputReader)
 
-	go s.activityMonitor(term, sshInputReader, channel)
+	go s.activityMonitor(username, term, sshInputReader, channel)
 	// Run SSH APP
 	sshApp.Run()
 	s.closeChannel(channel)
 }
 
-func (s *SshServer) activityMonitor(term *term.Terminal, inputReader *SshInputReader, channel ssh.Channel) {
+func (s *SshServer) activityMonitor(username string, term *term.Terminal, inputReader *SshInputReader, channel ssh.Channel) {
 	idleTimeout := 5 * time.Minute
 	checkTimeout := 1 * time.Minute
 	for {
@@ -131,8 +131,9 @@ func (s *SshServer) activityMonitor(term *term.Terminal, inputReader *SshInputRe
 			if time.Since(inputReader.lastKeyPressedTime) > idleTimeout {
 				term.Write([]byte("Session closed. Idle for too long (5 mins)."))
 				s.closeChannel(channel)
+				log.Info(username + " disconnected")
+				return
 			}
-			return
 		}
 	}
 }
