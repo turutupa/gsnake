@@ -27,6 +27,7 @@ const DEFAULT_PUB_KEY_FILENAME = "gsnake_ed25519.pub"
 
 type SshApp interface {
 	Run()
+	Stop()
 }
 
 type SshServer struct {
@@ -108,34 +109,40 @@ func (s *SshServer) handleChannel(
 		log.Error("Could not accept channel", err)
 		return
 	}
-	defer channel.Close()
 	defer log.Info(username + " disconnected")
 
 	// Set up terminal emulation
-	term := terminal.NewTerminal(channel, "")
+	t := terminal.NewTerminal(channel, "")
 	sshInputReader := NewSshInputReader(channel)
-	sshApp := sshAppInjector(term, sshInputReader)
+	sshApp := sshAppInjector(t, sshInputReader)
 
-	go s.activityMonitor(username, term, sshInputReader, channel)
+	// close channel if user idle
+	go func(
+		username string,
+		term *term.Terminal,
+		inputReader *SshInputReader,
+		channel ssh.Channel,
+		sshApp SshApp,
+	) {
+		idleTimeout := 10 * time.Second
+		checkTimeout := 1 * time.Second
+		for {
+			select {
+			case <-time.After(checkTimeout):
+				if time.Since(inputReader.lastKeyPressedTime) > idleTimeout {
+					sshApp.Stop()
+					term.Write([]byte("Session closed. Idle for too long (5 mins)."))
+					s.closeChannel(channel)
+					log.Info(username + " disconnected")
+					return
+				}
+			}
+		}
+	}(username, t, sshInputReader, channel, sshApp)
+
 	// Run SSH APP
 	sshApp.Run()
 	s.closeChannel(channel)
-}
-
-func (s *SshServer) activityMonitor(username string, term *term.Terminal, inputReader *SshInputReader, channel ssh.Channel) {
-	idleTimeout := 5 * time.Minute
-	checkTimeout := 1 * time.Minute
-	for {
-		select {
-		case <-time.After(checkTimeout):
-			if time.Since(inputReader.lastKeyPressedTime) > idleTimeout {
-				term.Write([]byte("Session closed. Idle for too long (5 mins)."))
-				s.closeChannel(channel)
-				log.Info(username + " disconnected")
-				return
-			}
-		}
-	}
 }
 
 func (s *SshServer) closeChannel(channel ssh.Channel) {

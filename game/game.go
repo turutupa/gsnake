@@ -74,7 +74,7 @@ func NewGame(
 		running:            true,
 		score:              0,
 		state:              MAIN_MENU,
-		selectedMenuOption: 2,
+		selectedMenuOption: 1, // defaults to NORMAL
 		selectChan:         make(chan bool),
 	}
 	return game
@@ -104,10 +104,10 @@ func (g *Game) Run() {
 	g.screen.clearTerminal()
 }
 
-func (g *Game) Quit() {
+func (g *Game) Stop() {
 	g.running = false
 	g.eventPoller.Close()
-	g.selectChan <- true
+	close(g.selectChan)
 }
 
 func (g *Game) restart() {
@@ -223,6 +223,7 @@ func (g *Game) userActionMainMenu(event rune) {
 		selectedOpt := MENU_OPTIONS[g.selectedMenuOption]
 		if selectedOpt == EXIT {
 			g.onExit()
+			return
 		} else if selectedOpt == LEADERBOARD {
 			g.state = LEADERBOARD_MENU
 		} else {
@@ -239,6 +240,7 @@ func (g *Game) userActionMainMenu(event rune) {
 		}
 	} else if event == 'q' {
 		g.onExit()
+		return
 	}
 	g.selectChan <- true
 }
@@ -314,7 +316,7 @@ func (g *Game) isEnterKey(input rune) bool {
 func (g *Game) onExit() {
 	if g.state == MAIN_MENU {
 		g.screen.clearTerminal()
-		g.Quit()
+		g.Stop()
 		return
 	}
 	g.restart()

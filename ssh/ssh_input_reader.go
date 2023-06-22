@@ -24,10 +24,15 @@ func (s *SshInputReader) Poll() byte {
 }
 
 func (s *SshInputReader) Close() {
+	// Use a select statement to safely check if the channel is already closed
 	select {
-	case _ = <-s.input:
-		close(s.input)
+	case _, ok := <-s.input:
+		if ok {
+			// Channel is open, close it
+			close(s.input)
+		}
 	default:
+		// Channel is not ready for receiving, meaning it is already closed
 	}
 }
 

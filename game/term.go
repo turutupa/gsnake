@@ -29,8 +29,10 @@ func (t *Term) Poll() byte {
 
 func (t *Term) Close() {
 	select {
-	case _ = <-t.input:
-		close(t.input)
+	case _, ok := <-t.input:
+		if ok {
+			close(t.input)
+		}
 	default:
 	}
 }
