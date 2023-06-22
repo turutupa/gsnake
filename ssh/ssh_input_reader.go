@@ -10,10 +10,11 @@ type SshInputReader struct {
 	channel            ssh.Channel
 	input              chan byte
 	lastKeyPressedTime time.Time
+	running            bool
 }
 
 func NewSshInputReader(channel ssh.Channel) *SshInputReader {
-	s := &SshInputReader{channel, make(chan byte), time.Now()}
+	s := &SshInputReader{channel, make(chan byte), time.Now(), true}
 	go s.readInput()
 	return s
 }
@@ -24,21 +25,12 @@ func (s *SshInputReader) Poll() byte {
 }
 
 func (s *SshInputReader) Close() {
-	// Use a select statement to safely check if the channel is already closed
-	select {
-	case _, ok := <-s.input:
-		if ok {
-			// Channel is open, close it
-			close(s.input)
-		}
-	default:
-		// Channel is not ready for receiving, meaning it is already closed
-	}
+	s.running = false
 }
 
 func (s *SshInputReader) readInput() {
 	var buf [1]byte
-	for {
+	for s.running {
 		_, err := s.channel.Read(buf[:])
 		if err != nil {
 			close(s.input)
@@ -47,4 +39,5 @@ func (s *SshInputReader) readInput() {
 		s.lastKeyPressedTime = time.Now()
 		s.input <- buf[0]
 	}
+	close(s.input)
 }

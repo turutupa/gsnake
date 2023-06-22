@@ -323,6 +323,7 @@ func (g *Game) onExit() {
 	if g.state == MAIN_MENU {
 		g.screen.clearTerminal()
 		g.Stop()
+		g.selectChan <- true
 		return
 	}
 	g.restart()
