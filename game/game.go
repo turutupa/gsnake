@@ -110,6 +110,7 @@ func (g *Game) Stop() {
 	default:
 	}
 	g.eventPoller.Close()
+	g.screen.clearTerminal()
 }
 
 func (g *Game) restart() {
