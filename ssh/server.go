@@ -131,9 +131,8 @@ func (s *SshServer) handleChannel(
 			case <-time.After(checkTimeout):
 				if time.Since(inputReader.lastKeyPressedTime) > idleTimeout {
 					sshApp.Stop()
-					term.Write([]byte("Session closed. Idle for too long (5 mins)."))
+					term.Write([]byte("Session closed. Idle for too long (5 mins).\n"))
 					s.closeChannel(channel)
-					log.Info(username + " disconnected")
 					return
 				}
 			}
