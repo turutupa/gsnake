@@ -117,20 +117,18 @@ func (g *Game) restart() {
 	g.state = MAIN_MENU
 }
 
-// none optimized main menu
-// on up/down, only selected
-// option should re-render,
-// instead of re-rendering
-// the entire thing
 func (g *Game) mainMenu() {
 	g.screen.clearTerminal()
 	g.screen.renderMainMenu(g.selectedMenuOption)
 }
 
 func (g *Game) runGame() {
+	var frameStart, frameTime uint32
+	var frameEnd time.Time
 	g.screen.clearTerminal()
 	g.screen.init()
 	for g.state == PLAYING {
+		frameStart = uint32(time.Now().UnixNano() / int64(time.Millisecond)) // Current time in milliseconds
 		g.screen.clear(g.fruit, g.snake.head, g.snake.tail, g.score)
 		g.snake.move()
 		if g.ateFruit() {
@@ -160,13 +158,21 @@ func (g *Game) runGame() {
 			g.restart()
 			return
 		}
-		// adding some extra time when going vertical because it feels faster
-		// than when going horizontally due to font width/height
-		duration := time.Duration(g.speed) * time.Millisecond
+		//  adding some extra time when going vertical because it feels faster
+		//  than when going horizontally due to font width/height.
+		//  Will solve that when we make it double columned
+		frameEnd = time.Now()
+		frameTime = uint32(frameEnd.UnixNano()/int64(time.Millisecond)) - frameStart
+		frameDelay := uint32(g.speed)
+		sleepDuration := time.Duration(frameDelay-frameTime) * time.Millisecond
 		if g.snake.head.pointing == UP || g.snake.head.pointing == DOWN {
-			time.Sleep(duration + (duration * 3 / 4))
+			if frameDelay > frameTime {
+				time.Sleep(sleepDuration * 2)
+			}
 		} else {
-			time.Sleep(duration)
+			if frameDelay > frameTime {
+				time.Sleep(sleepDuration)
+			}
 		}
 	}
 }

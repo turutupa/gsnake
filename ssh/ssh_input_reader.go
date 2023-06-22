@@ -1,16 +1,19 @@
 package ssh
 
 import (
+	"time"
+
 	"golang.org/x/crypto/ssh"
 )
 
 type SshInputReader struct {
-	channel ssh.Channel
-	input   chan byte
+	channel            ssh.Channel
+	input              chan byte
+	lastKeyPressedTime time.Time
 }
 
 func NewSshInputReader(channel ssh.Channel) *SshInputReader {
-	s := &SshInputReader{channel, make(chan byte)}
+	s := &SshInputReader{channel, make(chan byte), time.Now()}
 	go s.readInput()
 	return s
 }
@@ -36,6 +39,7 @@ func (s *SshInputReader) readInput() {
 			close(s.input)
 			return
 		}
+		s.lastKeyPressedTime = time.Now()
 		s.input <- buf[0]
 	}
 }

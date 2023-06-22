@@ -12,12 +12,14 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"turutupa/gsnake/events"
 	"turutupa/gsnake/log"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const DEFAULT_PRIV_KEY_FILENAME = "gsnake_ed25519"
@@ -76,10 +78,7 @@ func (s *SshServer) Run(sshAppInjector func(io.Writer, events.EventPoller) SshAp
 		username := sshConn.User()
 		log.Info(username + " connected from " + netConn.RemoteAddr().String() + " " + string(sshConn.ClientVersion()))
 		go ssh.DiscardRequests(reqs)
-		// go s.handleChannels(chans, sshAppInjector) // propagating channels and sshApp
-		safeGoRoutine(func() {
-			s.handleChannels(username, chans, sshAppInjector)
-		})
+		go s.handleChannels(username, chans, sshAppInjector)
 	}
 }
 
@@ -109,27 +108,41 @@ func (s *SshServer) handleChannel(
 		log.Error("Could not accept channel", err)
 		return
 	}
+	defer channel.Close()
 
 	// Set up terminal emulation
 	term := terminal.NewTerminal(channel, "")
 	sshInputReader := NewSshInputReader(channel)
 	sshApp := sshAppInjector(term, sshInputReader)
 
+	//
+	go s.activityMonitor(term, sshInputReader, channel)
 	// Run SSH APP
 	sshApp.Run()
-	channel.Close()
 	log.Info(username + " disconnected")
 }
 
-func safeGoRoutine(fn func()) {
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Error("Recovered from panic in goroutine", nil)
+func (s *SshServer) activityMonitor(term *term.Terminal, inputReader *SshInputReader, channel ssh.Channel) {
+	idleTimeout := 1 * time.Minute
+	checkTimeout := 1 * time.Minute
+	for {
+		select {
+		case <-time.After(checkTimeout):
+			if time.Since(inputReader.lastKeyPressedTime) > idleTimeout {
+				term.Write([]byte("Session closed. Idle for too long (5 mins)."))
+				s.closeChannel(channel)
 			}
-		}()
-		fn()
-	}()
+			return
+		}
+	}
+}
+
+func (s *SshServer) closeChannel(channel ssh.Channel) {
+	_, err := channel.SendRequest("dummy-request", true, nil)
+	if err != nil { // Channel is closed
+		return
+	}
+	channel.Close()
 }
 
 func (s *SshServer) getKeyPairOrDefault(privateKeyPath, publicKeyPath string) ([]byte, []byte, bool) {
