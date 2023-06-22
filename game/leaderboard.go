@@ -12,12 +12,12 @@ const FILE_NAME = "scoreboard"
 const FOLDER_NAME = "gsnake"
 const MAX_FILE_LINES = 100
 
-type Scoreboard struct {
+type Leaderboard struct {
 	scoreboardFile   string
 	existsStorageDir bool
 }
 
-func NewScoreboard() (*Scoreboard, error) {
+func NewLeaderboard() (*Leaderboard, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return nil, err
@@ -41,14 +41,14 @@ func NewScoreboard() (*Scoreboard, error) {
 		}
 	}
 
-	return &Scoreboard{
+	return &Leaderboard{
 		scoreboardFile:   scoreboardFile,
 		existsStorageDir: true,
 	}, nil
 }
 
-func (s *Scoreboard) update(score int) ([]int, bool) {
-	scores, ok := s.get()
+func (l *Leaderboard) update(score int) ([]int, bool) {
+	scores, ok := l.get()
 	if !ok {
 		return nil, false
 	}
@@ -62,7 +62,7 @@ func (s *Scoreboard) update(score int) ([]int, bool) {
 	}
 
 	scoresData := strings.Join(intSliceToStringSlice(scores), "\n")
-	err := os.WriteFile(s.scoreboardFile, []byte(scoresData), 0644)
+	err := os.WriteFile(l.scoreboardFile, []byte(scoresData), 0644)
 	if err != nil {
 		return nil, false
 	}
@@ -70,12 +70,12 @@ func (s *Scoreboard) update(score int) ([]int, bool) {
 	return scores, true
 }
 
-func (s *Scoreboard) get() ([]int, bool) {
-	if !s.existsStorageDir {
+func (l *Leaderboard) get() ([]int, bool) {
+	if !l.existsStorageDir {
 		return nil, false
 	}
 
-	data, err := os.ReadFile(s.scoreboardFile)
+	data, err := os.ReadFile(l.scoreboardFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, true

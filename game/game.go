@@ -2,40 +2,51 @@ package gsnake
 
 import (
 	"math"
+	"strconv"
 	"time"
 
 	"turutupa/gsnake/events"
 )
 
-type Speed int
+type MenuOptionOffline int
 
 const (
-	EXIT     Speed = 0
-	EASY     Speed = 50
-	NORMAL   Speed = 40
-	HARD     Speed = 30
-	INSANITY Speed = 20
+	EXIT        = "EXIT"
+	LEADERBOARD = "LEADERBOARD"
+	EASY        = "EASY"
+	NORMAL      = "NORMAL"
+	HARD        = "HARD"
+	INSANITY    = "INSANITY"
 )
 
-const ARROW_UP int = 65
-const ARROW_DOWN int = 66
-const ARROW_RIGHT int = 67
-const ARROW_LEFT int = 68
+const (
+	EASY_SPEED     = 50
+	NORMAL_SPEED   = 40
+	HARD_SPEED     = 30
+	INSANITY_SPEED = 20
+)
 
-var MENU_OPTIONS = []Speed{EASY, NORMAL, HARD, INSANITY, EXIT}
+const (
+	ARROW_UP    int = 65
+	ARROW_DOWN  int = 66
+	ARROW_RIGHT int = 67
+	ARROW_LEFT  int = 68
+)
+
+var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, LEADERBOARD, EXIT}
 
 type State int
 
 const (
-	MAIN_MENU  State = 1
-	PLAYING    State = 2
-	SCOREBOARD State = 3
+	MAIN_MENU        State = 1
+	PLAYING          State = 2
+	LEADERBOARD_MENU State = 3
 )
 
 type Game struct {
 	screen             *Screen
 	eventPoller        events.EventPoller
-	scoreboard         *Scoreboard
+	leaderboard        *Leaderboard
 	fruit              *Fruit
 	snake              *Snake
 	speed              int
@@ -49,14 +60,14 @@ type Game struct {
 func NewGame(
 	term events.EventPoller,
 	screen *Screen,
-	scoreboard *Scoreboard,
+	leaderboard *Leaderboard,
 	fruit *Fruit,
 	snake *Snake,
 ) *Game {
 	game := &Game{
 		screen:             screen,
 		eventPoller:        term,
-		scoreboard:         scoreboard,
+		leaderboard:        leaderboard,
 		fruit:              fruit,
 		snake:              snake,
 		speed:              0,
@@ -79,7 +90,15 @@ func (g *Game) Run() {
 				break
 			}
 		}
-		g.runGame()
+		if g.state == LEADERBOARD_MENU {
+			scores, ok := g.leaderboard.get()
+			if ok {
+				g.screen.renderScoreboard(scores)
+				<-g.selectChan
+			}
+		} else if g.state == PLAYING {
+			g.runGame()
+		}
 	}
 
 	g.screen.clearTerminal()
@@ -98,6 +117,11 @@ func (g *Game) restart() {
 	g.state = MAIN_MENU
 }
 
+// none optimized main menu
+// on up/down, only selected
+// option should re-render,
+// instead of re-rendering
+// the entire thing
 func (g *Game) mainMenu() {
 	g.screen.clearTerminal()
 	g.screen.renderMainMenu(g.selectedMenuOption)
@@ -111,7 +135,7 @@ func (g *Game) runGame() {
 		g.snake.move()
 		if g.ateFruit() {
 			g.score += 10
-			if g.speed == int(EASY) || g.speed == int(NORMAL) {
+			if g.speed == EASY_SPEED || g.speed == NORMAL_SPEED {
 				g.snake.append()
 				g.snake.append()
 			} else {
@@ -124,14 +148,14 @@ func (g *Game) runGame() {
 		g.screen.update(g.fruit, g.snake.head, g.score)
 		g.screen.renderSnake(g.fruit, g.snake.head, g.snake.tail, g.score)
 		if g.intersects() {
-			scores, ok := g.scoreboard.update(g.score)
+			scores, ok := g.leaderboard.update(g.score)
 			time.Sleep(1 * time.Second)
 			g.screen.clearTerminal()
 			g.screen.GameOver()
 			if ok {
 				g.screen.renderScoreboard(scores)
 			}
-			g.state = SCOREBOARD
+			g.state = LEADERBOARD_MENU
 			<-g.selectChan
 			g.restart()
 			return
@@ -178,8 +202,8 @@ func (g *Game) executeUserInput() {
 			g.userActionMainMenu(event)
 		} else if g.state == PLAYING {
 			g.userActionSnake(event)
-		} else if g.state == SCOREBOARD {
-			g.userActionScoreboard(event)
+		} else if g.state == LEADERBOARD_MENU {
+			g.userActionLeaderboardMenu(event)
 		}
 	}
 }
@@ -190,17 +214,34 @@ func (g *Game) userActionMainMenu(event rune) {
 	} else if event == 's' || event == 'j' || int(event) == ARROW_DOWN {
 		g.selectedMenuOption = int(math.Min(float64(len(MENU_OPTIONS)-1), float64(g.selectedMenuOption+1)))
 	} else if g.isEnterKey(event) {
-		if g.selectedMenuOption == len(MENU_OPTIONS)-1 {
+		selectedOpt := MENU_OPTIONS[g.selectedMenuOption]
+		if selectedOpt == EXIT {
 			g.onExit()
-			g.selectChan <- true
-			return
+		} else if selectedOpt == LEADERBOARD {
+			g.state = LEADERBOARD_MENU
+		} else {
+			if selectedOpt == EASY {
+				g.speed = EASY_SPEED
+			} else if selectedOpt == NORMAL {
+				g.speed = NORMAL_SPEED
+			} else if selectedOpt == HARD {
+				g.speed = HARD_SPEED
+			} else if selectedOpt == INSANITY {
+				g.speed = INSANITY_SPEED
+			}
+			g.state = PLAYING
 		}
-		g.speed = int(MENU_OPTIONS[g.selectedMenuOption])
-		g.state = PLAYING
 	} else if event == 'q' {
 		g.onExit()
 	}
 	g.selectChan <- true
+}
+
+func (g *Game) userActionLeaderboardMenu(event rune) {
+	if event == '\n' || event == 'q' || g.isEnterKey(event) {
+		g.onExit()
+		g.selectChan <- true
+	}
 }
 
 func (g *Game) userActionSnake(event rune) {
@@ -226,12 +267,6 @@ func (g *Game) userActionSnake(event rune) {
 	}
 }
 
-func (g *Game) userActionScoreboard(event rune) {
-	if event == '\n' || event == 'q' || g.isEnterKey(event) {
-		g.selectChan <- true
-	}
-}
-
 func (g *Game) isEnterKey(input rune) bool {
 	in := byte(input)
 	enterKeys := [2]byte{'\n', '\r'} // Byte representations of "enter" keys
@@ -250,4 +285,9 @@ func (g *Game) onExit() {
 		return
 	}
 	g.restart()
+}
+
+func toInt(str string) int {
+	s, _ := strconv.Atoi(str)
+	return s
 }

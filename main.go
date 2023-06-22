@@ -39,10 +39,10 @@ func snakeApp(writer io.Writer, eventsPoller events.EventPoller) ssh.SshApp {
 	rows := 20
 	cols := 50
 	screen := gsnake.NewScreen(writer, rows, cols)
-	scoreboard, _ := gsnake.NewScoreboard()
+	leaderboard, _ := gsnake.NewLeaderboard()
 	snake := gsnake.NewSnake(screen)
 	fruit := gsnake.NewFruit(rows, cols)
-	return gsnake.NewGame(eventsPoller, screen, scoreboard, fruit, snake)
+	return gsnake.NewGame(eventsPoller, screen, leaderboard, fruit, snake)
 }
 
 func displayHelp() {

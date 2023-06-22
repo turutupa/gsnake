@@ -100,11 +100,10 @@ func (s *Screen) renderMainMenu(selected int) {
 	title := "SELECT GAME MODE"
 	startLine := s.cols/2 - len(title)/2 - 1
 	row := s.rows / 5
-	gameModes := []string{"EASY", "NORMAL", "HARD", "INSANITY", "EXIT"}
 	s.printBold(row, startLine, title)
 	row += 2
 	optionIndex := 0
-	for i, game := range gameModes {
+	for i, game := range MENU_OPTIONS {
 		paddingRight := 8
 		if optionIndex == selected {
 			selectedIndicatorLeft := "> "
@@ -121,7 +120,7 @@ func (s *Screen) renderMainMenu(selected int) {
 				s.print(row, startLine+i, r)
 			}
 		}
-		if i == len(gameModes)-2 {
+		if i == len(MENU_OPTIONS)-3 {
 			row += 2
 		} else {
 			row++
