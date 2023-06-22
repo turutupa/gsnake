@@ -23,8 +23,8 @@ func NewTerm() *Term {
 	return term
 }
 
-func (t *Term) Poll() byte {
-	return <-t.input
+func (t *Term) Poll() (byte, error) {
+	return <-t.input, nil
 }
 
 func (t *Term) Close() {
