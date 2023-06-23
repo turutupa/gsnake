@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="media/gsnake.png" alt="gsnake" height="150">
+  <img src="media/gsnake.png" alt="gsnake" height="200">
 </div>
 
 Table of Contents 
