@@ -1,6 +1,7 @@
 ![GSNAKE](media/gsnake.png)
 
 Table of Contents 
+- [Live!](#live!)
 - [Demo](#demo)
 - [Installation](#installation)
 - [How to run](#how-to-run)
@@ -10,11 +11,14 @@ Table of Contents
 - [Contact](#contact)
 - [Donations](#donations)
 
-## Demo 
+## Live!
 Currently running on `turutupa.com`. You may play gsnake using 
 ```bash
 $ ssh <your_username>@turutupa.com -p 5555
 ```
+
+## Demo 
+![gsnake.gif](media/gsnake.gif)
 
 ## Installation
 Execute `install.sh` script
@@ -48,6 +52,7 @@ To be updated.
 - [x] ~~Add bash script to install/run the game~~
 - [x] ~~Finish README.md including how to install on machine~~
 - [ ] Inifite mode? Where you can only die if snake hits itself
+- [ ] Refactor game so that grid is double columned (this way width and height will be roughly the same)
 - [ ] Improve leaderboard 
     - [x] ~~Add some borders~~
     - [ ] Add the option to input username

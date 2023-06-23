@@ -12,6 +12,11 @@ const FILE_NAME = "scoreboard"
 const FOLDER_NAME = "gsnake"
 const MAX_FILE_LINES = 100
 
+type Score struct {
+	player string
+	score  int
+}
+
 type Leaderboard struct {
 	scoreboardFile   string
 	existsStorageDir bool
@@ -47,21 +52,25 @@ func NewLeaderboard() (*Leaderboard, error) {
 	}, nil
 }
 
-func (l *Leaderboard) update(score int) ([]int, bool) {
+func (l *Leaderboard) update(player string, score int) ([]*Score, bool) {
 	scores, ok := l.get()
 	if !ok {
 		return nil, false
 	}
 
-	scores = append(scores, score)
+	scores = append(scores, &Score{player, score})
 	sort.Slice(scores, func(i, j int) bool {
-		return scores[i] > scores[j]
+		return scores[i].score > scores[j].score
 	})
 	if len(scores) > MAX_FILE_LINES {
 		scores = scores[:MAX_FILE_LINES]
 	}
 
-	scoresData := strings.Join(intSliceToStringSlice(scores), "\n")
+	rows := []string{}
+	for _, s := range scores {
+		rows = append(rows, s.player+"\t"+strconv.Itoa(s.score))
+	}
+	scoresData := strings.Join(rows, "\n")
 	err := os.WriteFile(l.scoreboardFile, []byte(scoresData), 0644)
 	if err != nil {
 		return nil, false
@@ -70,7 +79,7 @@ func (l *Leaderboard) update(score int) ([]int, bool) {
 	return scores, true
 }
 
-func (l *Leaderboard) get() ([]int, bool) {
+func (l *Leaderboard) get() ([]*Score, bool) {
 	if !l.existsStorageDir {
 		return nil, false
 	}
@@ -81,23 +90,19 @@ func (l *Leaderboard) get() ([]int, bool) {
 			return nil, true
 		}
 		return nil, false
+	} else if len(data) == 0 {
+		return []*Score{}, true
 	}
 
 	content := strings.Split(string(data), "\n")
-	scores := []int{}
-	for _, s := range content {
-		if num, err := strconv.Atoi(s); err == nil {
-			scores = append(scores, num)
+	scores := []*Score{}
+	for _, r := range content {
+		row := strings.Split(r, "\t")
+		player := row[0]
+		if score, err := strconv.Atoi(row[1]); err == nil {
+			scores = append(scores, &Score{player, score})
 		}
 	}
 
 	return scores, true
-}
-
-func intSliceToStringSlice(slice []int) []string {
-	strSlice := make([]string, len(slice))
-	for i, v := range slice {
-		strSlice[i] = strconv.Itoa(v)
-	}
-	return strSlice
 }

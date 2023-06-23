@@ -178,10 +178,10 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.finishPrint()
 }
 
-func (s *Screen) renderScoreboard(scores []int) {
+func (s *Screen) renderScoreboard(scores []*Score) {
 	title := "| " + "TOP SCORES" + " |"
 	for len(scores) < 5 {
-		scores = append(scores, 0)
+		scores = append(scores, &Score{"", 0})
 	}
 	scores = scores[:5]
 	marginLeft := len(title)/2 - 1
@@ -205,7 +205,7 @@ func (s *Screen) renderScoreboard(scores []int) {
 
 	for _, score := range scores {
 		rightPadding := 2
-		scoreStr := strconv.Itoa(score)
+		scoreStr := strconv.Itoa(score.score)
 		scoreFmt := strings.Repeat(" ", len(title)-len(scoreStr)-rightPadding)
 		scoreFmt = scoreFmt + scoreStr
 		scoreFmt = scoreFmt + strings.Repeat(" ", rightPadding) // add padding to the right if needed

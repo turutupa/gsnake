@@ -38,10 +38,11 @@ var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, LEADERBOARD, EXIT}
 type State int
 
 const (
-	MAIN_MENU        State = 1
-	PLAYING          State = 2
-	LEADERBOARD_MENU State = 3
-	FINISHED         State = 4
+	MAIN_MENU              State = 1
+	PLAYING                State = 2
+	LEADERBOARD_MENU       State = 3
+	LEADERBOARD_SUBMISSION State = 4
+	FINISHED               State = 5
 )
 
 type Game struct {
@@ -149,7 +150,7 @@ func (g *Game) runGame() {
 		g.screen.update(g.fruit, g.snake.head, g.score)
 		g.screen.renderSnake(g.fruit, g.snake.head, g.snake.tail, g.score)
 		if g.intersects() {
-			scores, ok := g.leaderboard.update(g.score)
+			scores, ok := g.leaderboard.update("turutupa", g.score)
 			time.Sleep(1 * time.Second)
 			g.screen.clearTerminal()
 			g.screen.GameOver()
