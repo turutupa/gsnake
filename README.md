@@ -19,7 +19,7 @@ $ ssh <your_username>@turutupa.com -p 5555
 
 ## Demo 
 <div align="center">
-  <img src="media/gsnake.gif" alt="gsnake" style="max-height: 200px;">
+  <img src="media/gsnake.gif" alt="gsnake" height="300">
 </div>
 
 ## Installation
