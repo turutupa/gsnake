@@ -1,4 +1,6 @@
-![GSNAKE](media/gsnake.png)
+<div align="center">
+  <img src="media/gsnake.png" alt="gsnake" height="150">
+</div>
 
 Table of Contents 
 - [Live!](#live)

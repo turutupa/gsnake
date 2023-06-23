@@ -339,7 +339,7 @@ func (s *Screen) GameOver() {
 
  
 
-                PRESS ENTER TO CONTINUE
+              PRESS ENTER TO CONTINUE
 `
 	s.writer.Write([]byte(gameOver))
 }
