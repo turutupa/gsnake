@@ -1,9 +1,6 @@
 <div align="center">
   <img src="media/gsnake.png" alt="gsnake" height="200">
 </div>
-<div align="center">
-  <img src="media/gsnake.png" alt="gsnake" style="height: 200px; width: auto; max-width: 100%;">
-</div>
 
 Table of Contents 
 - [Live!](#live)
