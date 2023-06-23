@@ -1,7 +1,7 @@
 ![GSNAKE](media/gsnake.png)
 
 Table of Contents 
-- [Live!](#live!)
+- [Live!](#live)
 - [Demo](#demo)
 - [Installation](#installation)
 - [How to run](#how-to-run)
@@ -18,7 +18,9 @@ $ ssh <your_username>@turutupa.com -p 5555
 ```
 
 ## Demo 
-![gsnake.gif](media/gsnake.gif)
+<div align="center">
+  <img src="media/gsnake.gif" alt="gsnake" style="max-height: 300px;">
+</div>
 
 ## Installation
 Execute `install.sh` script
