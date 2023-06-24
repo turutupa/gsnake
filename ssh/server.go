@@ -124,8 +124,8 @@ func (s *SshServer) handleChannel(
 		channel ssh.Channel,
 		sshApp SshApp,
 	) {
-		idleTimeout := 10 * time.Second
-		checkTimeout := 1 * time.Second
+		idleTimeout := 5 * time.Minute
+		checkTimeout := 1 * time.Minute
 		for {
 			select {
 			case <-time.After(checkTimeout):
@@ -133,6 +133,7 @@ func (s *SshServer) handleChannel(
 					sshApp.Stop()
 					term.Write([]byte("Session closed. Idle for too long (5 mins).\n"))
 					s.closeChannel(channel)
+					log.Warn(username + " forced disconnect, reason idle")
 					return
 				}
 			}

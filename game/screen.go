@@ -178,7 +178,7 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.finishPrint()
 }
 
-func (s *Screen) renderScoreboard(scores []*Score) {
+func (s *Screen) renderScoreboard(scores []*Score, newHighScore *Score) {
 	title := "| " + "TOP SCORES" + " |"
 	for len(scores) < 5 {
 		scores = append(scores, &Score{"", 0})

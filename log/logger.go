@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"time"
+	"turutupa/gsnake/fsutil"
 )
 
 const (
@@ -12,6 +13,15 @@ const (
 	colorCyan   = "\033[96m"
 	colorWhite  = "\033[97m"
 )
+
+var enableStorage bool = false
+
+const LOG_NAME string = "gsnake."
+
+func EnableStorage() {
+	Info("Log persistence enabled")
+	enableStorage = true
+}
 
 func Info(message string) {
 	printLog("INFO", colorCyan, message)
@@ -36,5 +46,33 @@ func Log(message string) {
 func printLog(logType, color, message string) {
 	timestamp := time.Now().Format("[2006-01-02][15:04:05]")
 	logTypeBold := fmt.Sprintf("\033[1m%s\033[0m", logType)
-	fmt.Printf("%s %s%s%s %s\n", timestamp, color, logTypeBold, colorReset, message)
+	logLine := fmt.Sprintf("%s %s%s%s %s\n", timestamp, color, logTypeBold, colorReset, message)
+	fmt.Printf(logLine)
+
+	if enableStorage {
+		fileName := getLogFileName()
+		logRaw := fmt.Sprintf("%s %s %s\n", timestamp, logType, message)
+		writeLogToFile(fileName, logRaw)
+	}
+}
+
+func getLogFileName() string {
+	currentTime := time.Now()
+	dateString := currentTime.Format("20060102")
+	fileName := LOG_NAME + dateString + ".log"
+	return fileName
+}
+
+func writeLogToFile(fileName, logLine string) {
+	file, err := fsutil.OpenFile(fileName)
+	if err != nil {
+		fmt.Println("Error opening log file:", err)
+		return
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(logLine)
+	if err != nil {
+		fmt.Println("Error writing log to file:", err)
+	}
 }

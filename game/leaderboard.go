@@ -2,14 +2,13 @@ package gsnake
 
 import (
 	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+	"turutupa/gsnake/fsutil"
 )
 
-const FILE_NAME = "scoreboard"
-const FOLDER_NAME = "gsnake"
+const FILENAME = "scoreboard"
 const MAX_FILE_LINES = 100
 
 type Score struct {
@@ -18,38 +17,31 @@ type Score struct {
 }
 
 type Leaderboard struct {
-	scoreboardFile   string
-	existsStorageDir bool
+	enabled bool
 }
 
-func NewLeaderboard() (*Leaderboard, error) {
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return nil, err
-	}
+func NewLeaderboard() *Leaderboard {
+	_, ok := fsutil.NewCfgFile(FILENAME)
+	return &Leaderboard{ok}
+}
 
-	// Create the directory if it doesn't exist
-	scoreboardDir := filepath.Join(configDir, FOLDER_NAME)
-	if _, err := os.Stat(scoreboardDir); os.IsNotExist(err) {
-		err := os.MkdirAll(scoreboardDir, 0700)
-		if err != nil {
-			return nil, err
+func (l *Leaderboard) isHighScore(score int) (bool, bool) {
+	scores, ok := l.get()
+	if !ok {
+		return false, false
+	}
+	if len(scores) < 5 {
+		return true, true
+	}
+	for i, s := range scores {
+		if i >= 5 {
+			return false, true
+		}
+		if score > s.score {
+			return true, true
 		}
 	}
-
-	// Create the file if it doesn't exist
-	scoreboardFile := filepath.Join(scoreboardDir, FILE_NAME)
-	if _, err := os.Stat(scoreboardFile); os.IsNotExist(err) {
-		_, err := os.Create(scoreboardFile)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &Leaderboard{
-		scoreboardFile:   scoreboardFile,
-		existsStorageDir: true,
-	}, nil
+	return false, true
 }
 
 func (l *Leaderboard) update(player string, score int) ([]*Score, bool) {
@@ -71,7 +63,7 @@ func (l *Leaderboard) update(player string, score int) ([]*Score, bool) {
 		rows = append(rows, s.player+"\t"+strconv.Itoa(s.score))
 	}
 	scoresData := strings.Join(rows, "\n")
-	err := os.WriteFile(l.scoreboardFile, []byte(scoresData), 0644)
+	err := fsutil.WriteFile(FILENAME, []byte(scoresData))
 	if err != nil {
 		return nil, false
 	}
@@ -80,11 +72,11 @@ func (l *Leaderboard) update(player string, score int) ([]*Score, bool) {
 }
 
 func (l *Leaderboard) get() ([]*Score, bool) {
-	if !l.existsStorageDir {
+	if !l.enabled {
 		return nil, false
 	}
 
-	data, err := os.ReadFile(l.scoreboardFile)
+	data, err := fsutil.ReadFile(FILENAME)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, true
