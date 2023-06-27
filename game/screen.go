@@ -182,13 +182,19 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 
 func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighScore *Score) {
 	title := "| " + "TOP SCORES" + " |"
-	for len(scores) < 5 {
+	var leaderboarSize int
+	if newHighScore != nil {
+		leaderboarSize = 4
+	} else {
+		leaderboarSize = 5
+	}
+	for len(scores) < leaderboarSize {
 		// this is just to make sure we always render 5
 		// rows of scores, even if player hasn't already
 		// played 5 times
 		scores = append(scores, &Score{"", 0})
 	}
-	scores = scores[:5]
+	scores = scores[:leaderboarSize]
 	marginLeft := len(title)/2 - 1
 	startLine := s.cols/2 - marginLeft
 	row := s.rows/3 + 1
@@ -222,18 +228,21 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighSco
 
 	// print scores
 	renderedNewHighScore := false
-	for _, score := range scores {
+	i := 0
+	for i < len(scores) {
+		score := scores[i]
 		var scoreFmt string
 		var sc int
 		var pl string
 		isHighScore := newHighScore != nil && !renderedNewHighScore && newHighScore.score > score.score
-		if isHighScore {
+		if isHighScore && !renderedNewHighScore {
 			sc = newHighScore.score
 			pl = newHighScore.player
 			renderedNewHighScore = true
 		} else {
 			sc = score.score
 			pl = score.player
+			i++
 		}
 
 		rightPadding := 2

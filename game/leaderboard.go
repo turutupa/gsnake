@@ -72,28 +72,24 @@ func (l *Leaderboard) update(player string, difficulty string, score int) ([]*Sc
 			existsDiff = true
 		}
 	}
-
 	if !existsDiff {
 		log.Error("Leaderboard trying to update a difficulty that doesn't exist.", nil)
 		return nil, false
 	}
-
 	scores, exists := l.leaderboard[difficulty]
 	if !exists {
 		scores = []*Score{}
 	}
-
 	scores = append(scores, &Score{player, score})
 	sort.Slice(scores, func(i, j int) bool {
 		return scores[i].score > scores[j].score
 	})
-
 	if len(scores) > MAX_SCORES_STORED {
 		scores = scores[:MAX_SCORES_STORED]
 	}
-
 	l.leaderboard[difficulty] = scores
 
+	// persist
 	rows := []string{}
 	for _, s := range scores {
 		rows = append(rows, s.player+"\t"+strconv.Itoa(s.score))
@@ -104,7 +100,7 @@ func (l *Leaderboard) update(player string, difficulty string, score int) ([]*Sc
 		return nil, false
 	}
 
-	return l.leaderboard[difficulty], true
+	return scores, true
 }
 
 func (l *Leaderboard) getPersistedScores(filename string) ([]*Score, bool) {
