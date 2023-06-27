@@ -133,7 +133,6 @@ func (s *SshServer) handleChannel(
 					// Check if the channel is open by sending a "keepalive" request.
 					_, err := channel.SendRequest("keepalive@openssh.com", true, nil)
 					if err != nil {
-						log.Warn("Channel already closed")
 						return
 					}
 					sshApp.Stop()

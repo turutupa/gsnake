@@ -77,6 +77,7 @@ func (s *Screen) updateScoreboard(score int) {
 
 // print borders
 func (s *Screen) init() {
+	s.hideCursor()
 	s.updateScoreboard(0)
 	for i := 0; i < s.cols; i++ {
 		s.print(0, i, s.matrix[0][i])
@@ -375,6 +376,10 @@ func (s *Screen) printBold(row, col int, r string) {
 
 func (s *Screen) finishPrint() {
 	fmt.Fprintf(s.writer, "\033[%d;%dH", s.rows+1, 0)
+}
+
+func (s *Screen) hideCursor() {
+	fmt.Fprint(s.writer, "\033[?25l")
 }
 
 func (s *Screen) GameOver() {
