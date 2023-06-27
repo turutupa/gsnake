@@ -18,10 +18,14 @@ const (
 	NORMAL      = "NORMAL"
 	HARD        = "HARD"
 	INSANITY    = "INSANITY"
+
+	SINGLE_PLAYER = "SINGLE_PLAYER"
+	MULTI_PLAYER  = "MULTI_PLAYER"
 )
 
 var DIFFICULTIES = []string{EASY, NORMAL, HARD, INSANITY}
 var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, EXIT}
+var SSH_MENU_OPTIONS = []string{SINGLE_PLAYER, MULTI_PLAYER}
 
 // Snake available speeds
 const (
