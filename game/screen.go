@@ -105,7 +105,7 @@ func (s *Screen) renderMainMenu(selected int) {
 	s.printBold(row, startLine, title)
 	row += 2
 	optionIndex := 0
-	for i, game := range MENU_OPTIONS {
+	for _, game := range MENU_OPTIONS {
 		paddingRight := 8
 		if optionIndex == selected {
 			selectedIndicatorLeft := "> "
@@ -122,7 +122,7 @@ func (s *Screen) renderMainMenu(selected int) {
 				s.print(row, startLine+i, r)
 			}
 		}
-		if i == len(MENU_OPTIONS)-3 {
+		if game == INSANITY {
 			row += 2
 		} else {
 			row++

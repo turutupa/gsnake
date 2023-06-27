@@ -21,7 +21,7 @@ const (
 )
 
 var DIFFICULTIES = []string{EASY, NORMAL, HARD, INSANITY}
-var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, LEADERBOARD, EXIT}
+var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, EXIT}
 
 // Snake available speeds
 const (
