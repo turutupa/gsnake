@@ -130,6 +130,12 @@ func (s *SshServer) handleChannel(
 			select {
 			case <-time.After(checkTimeout):
 				if time.Since(inputReader.lastKeyPressedTime) > idleTimeout {
+					// Check if the channel is open by sending a "keepalive" request.
+					_, err := channel.SendRequest("keepalive@openssh.com", true, nil)
+					if err != nil {
+						log.Warn("Channel already closed")
+						return
+					}
 					sshApp.Stop()
 					term.Write([]byte("Session closed. Idle for too long (5 mins).\n"))
 					s.closeChannel(channel)
