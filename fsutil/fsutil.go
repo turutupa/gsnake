@@ -4,11 +4,21 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 const FOLDER_NAME = "gsnake"
 
+var (
+	locks = make(map[string]*sync.RWMutex)
+	m     sync.RWMutex
+)
+
 func NewCfgFile(filename string) (string, bool) {
+	lock := getLockForFile(filename)
+	lock.Lock()
+	defer lock.Unlock()
+
 	configDir, ok := mkDirApp()
 	if !ok {
 		return "", false
@@ -24,6 +34,10 @@ func NewCfgFile(filename string) (string, bool) {
 }
 
 func ReadFile(filename string) ([]byte, error) {
+	lock := getLockForFile(filename)
+	lock.RLock()
+	defer lock.RUnlock()
+
 	if configDir, ok := getDir(); !ok {
 		return nil, errors.New("Something went wrong retrieving user config dir")
 	} else {
@@ -33,6 +47,10 @@ func ReadFile(filename string) ([]byte, error) {
 }
 
 func WriteFile(filename string, data []byte) error {
+	lock := getLockForFile(filename)
+	lock.Lock()
+	defer lock.Unlock()
+
 	if configDir, ok := getDir(); !ok {
 		return errors.New("Something went wrong retrieving user config dir")
 	} else {
@@ -41,12 +59,21 @@ func WriteFile(filename string, data []byte) error {
 	}
 }
 
-func OpenFile(filename string) (*os.File, error) {
+func AppendToFile(filename string, data string) error {
+	lock := getLockForFile(filename)
+	lock.Lock()
+	defer lock.Unlock()
 	if configDir, ok := getDir(); !ok {
-		return nil, errors.New("Something went wrong retrieving user config dir")
+		return errors.New("Something went wrong retrieving user config dir")
 	} else {
 		fileDir := filepath.Join(configDir, filename)
-		return os.OpenFile(fileDir, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		file, err := os.OpenFile(fileDir, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		_, err = file.WriteString(data)
+		return err
 	}
 }
 
@@ -70,4 +97,16 @@ func mkDirApp() (string, bool) {
 		}
 	}
 	return configDir, true
+}
+
+func getLockForFile(filename string) *sync.RWMutex {
+	m.Lock()
+	defer m.Unlock()
+
+	lock, exist := locks[filename]
+	if !exist {
+		lock = &sync.RWMutex{}
+		locks[filename] = lock
+	}
+	return lock
 }

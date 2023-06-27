@@ -14,6 +14,8 @@ const BOTTOM_LEFT rune = '╰'
 const BOTTOM_RIGHT rune = '╯'
 const HORIZONTAL rune = '─'
 
+const MAX_HIGH_SCORE_DIGITS = 4
+
 type Screen struct {
 	writer        io.Writer
 	rows          int
@@ -178,15 +180,20 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 	s.finishPrint()
 }
 
-func (s *Screen) renderScoreboard(scores []*Score, newHighScore *Score) {
+func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighScore *Score) {
 	title := "| " + "TOP SCORES" + " |"
 	for len(scores) < 5 {
+		// this is just to make sure we always render 5
+		// rows of scores, even if player hasn't already
+		// played 5 times
 		scores = append(scores, &Score{"", 0})
 	}
 	scores = scores[:5]
 	marginLeft := len(title)/2 - 1
 	startLine := s.cols/2 - marginLeft
-	row := s.rows/3 - 1
+	row := s.rows/3 + 1
+
+	// print border top
 	for i := 0; i < len(title); i++ {
 		position := startLine + i
 		if i == 0 {
@@ -198,15 +205,50 @@ func (s *Screen) renderScoreboard(scores []*Score, newHighScore *Score) {
 		}
 	}
 	row++
+
+	// print title
 	for i, r := range title {
-		s.print(row, s.cols/2-marginLeft+i, r)
+		s.print(row, startLine+i, r)
 	}
 	row++
 
+	// print difficulty
+	padding := strings.Repeat(" ", (len(title)-len(difficulty)-2)/2)
+	diff := "|" + padding + difficulty + padding + "|"
+	for i, r := range diff {
+		s.print(row, startLine+i, r)
+	}
+	row++
+
+	// print scores
+	renderedNewHighScore := false
 	for _, score := range scores {
+		var scoreFmt string
+		var sc int
+		var pl string
+		isHighScore := newHighScore != nil && !renderedNewHighScore && newHighScore.score > score.score
+		if isHighScore {
+			sc = newHighScore.score
+			pl = newHighScore.player
+			renderedNewHighScore = true
+		} else {
+			sc = score.score
+			pl = score.player
+		}
+
 		rightPadding := 2
-		scoreStr := strconv.Itoa(score.score)
-		scoreFmt := strings.Repeat(" ", len(title)-len(scoreStr)-rightPadding)
+		leftPadding := 2
+		// when submitting new high score
+		// if newHighScore != nil && !renderedNewHighScore && newHighScore.score > score.score {
+		scoreStr := strconv.Itoa(sc)
+		scoreFmt = strings.Repeat(" ", leftPadding) + pl
+		if len(pl) < MAX_PLAYER_LEN && isHighScore {
+			scoreFmt = scoreFmt + strings.Repeat("_", MAX_PLAYER_LEN-len(pl))
+		} else {
+			scoreFmt = scoreFmt + strings.Repeat(" ", MAX_PLAYER_LEN-len(pl))
+		}
+		scoreFmt = scoreFmt + strings.Repeat(" ", 2)
+		scoreFmt = scoreFmt + strings.Repeat("0", MAX_HIGH_SCORE_DIGITS-len(strconv.Itoa(sc)))
 		scoreFmt = scoreFmt + scoreStr
 		scoreFmt = scoreFmt + strings.Repeat(" ", rightPadding) // add padding to the right if needed
 
@@ -221,8 +263,9 @@ func (s *Screen) renderScoreboard(scores []*Score, newHighScore *Score) {
 		row++
 	}
 
+	// render border bottom
 	for i := range title {
-		position := s.cols/2 - marginLeft + i
+		position := startLine + i
 		if i == 0 {
 			s.print(row, position, BOTTOM_LEFT)
 		} else if i == len(title)-1 {
@@ -231,6 +274,15 @@ func (s *Screen) renderScoreboard(scores []*Score, newHighScore *Score) {
 			s.print(row, position, HORIZONTAL)
 		}
 	}
+	row = row + 2
+	var msg string
+	if newHighScore != nil {
+		msg = " PRESS ENTER TO SUBMIT NEW HIGH SCORE "
+	} else {
+		msg = " PRESS ENTER TO CONTINUE "
+	}
+	s.printBold(row, s.cols/2-len(msg)/2, msg)
+
 	s.finishPrint()
 }
 
@@ -318,45 +370,41 @@ func (s *Screen) finishPrint() {
 
 func (s *Screen) GameOver() {
 	gameOver := `
-       $$$$$$\   $$$$$$\  $$\      $$\ $$$$$$$$\       
-      $$  __$$\ $$  __$$\ $$$\    $$$ |$$  _____|      
-      $$ /  \__|$$ /  $$ |$$$$\  $$$$ |$$ |            
-      $$ |$$$$\ $$$$$$$$ |$$\$$\$$ $$ |$$$$$\          
-      $$ |\_$$ |$$  __$$ |$$ \$$$  $$ |$$  __|         
-      $$ |  $$ |$$ |  $$ |$$ |\$  /$$ |$$ |            
-      \$$$$$$  |$$ |  $$ |$$ | \_/ $$ |$$$$$$$$\        
-       \______/ \__|  \__|\__|     \__|\________|       
+	     $$$$$$\   $$$$$$\  $$\      $$\ $$$$$$$$\
+	    $$  __$$\ $$  __$$\ $$$\    $$$ |$$  _____|
+	    $$ /  \__|$$ /  $$ |$$$$\  $$$$ |$$ |
+	    $$ |$$$$\ $$$$$$$$ |$$\$$\$$ $$ |$$$$$\
+	    $$ |\_$$ |$$  __$$ |$$ \$$$  $$ |$$  __|
+	    $$ |  $$ |$$ |  $$ |$$ |\$  /$$ |$$ |
+	    \$$$$$$  |$$ |  $$ |$$ | \_/ $$ |$$$$$$$$\
+	     \______/ \__|  \__|\__|     \__|\________|
 
-       $$$$$$\  $$\    $$\ $$$$$$$$\ $$$$$$$\  
-      $$  __$$\ $$ |   $$ |$$  _____|$$  __$$\ 
-      $$ /  $$ |$$ |   $$ |$$ |      $$ |  $$ |
-      $$ |  $$ |\$$\  $$  |$$$$$\    $$$$$$$  |
-      $$ |  $$ | \$$\$$  / $$  __|   $$  __$$< 
-      $$ |  $$ |  \$$$  /  $$ |      $$ |  $$ |
-       $$$$$$  |   \$  /   $$$$$$$$\ $$ |  $$ |
-       \______/     \_/    \________|\__|  \__|
+	     $$$$$$\  $$\    $$\ $$$$$$$$\ $$$$$$$\
+	    $$  __$$\ $$ |   $$ |$$  _____|$$  __$$\
+	    $$ /  $$ |$$ |   $$ |$$ |      $$ |  $$ |
+	    $$ |  $$ |\$$\  $$  |$$$$$\    $$$$$$$  |
+	    $$ |  $$ | \$$\$$  / $$  __|   $$  __$$<
+	    $$ |  $$ |  \$$$  /  $$ |      $$ |  $$ |
+	     $$$$$$  |   \$  /   $$$$$$$$\ $$ |  $$ |
+	     \______/     \_/    \________|\__|  \__|
+	`
 
-
- 
-
-              PRESS ENTER TO CONTINUE
-`
 	s.writer.Write([]byte(gameOver))
 }
 
 func (s *Screen) printLogo() {
 	logo := `
-                                              $$\                 
-                                              $$ |                
-       $$$$$$\   $$$$$$$\ $$$$$$$\   $$$$$$\  $$ |  $$\  $$$$$$\  
-      $$  __$$\ $$  _____|$$  __$$\  \____$$\ $$ | $$  |$$  __$$\ 
-      $$ /  $$ |\$$$$$$\  $$ |  $$ | $$$$$$$ |$$$$$$  / $$$$$$$$ |
-      $$ |  $$ | \____$$\ $$ |  $$ |$$  __$$ |$$  _$$<  $$   ____|
-      \$$$$$$$ |$$$$$$$  |$$ |  $$ |\$$$$$$$ |$$ | \$$\ \$$$$$$$\ 
-       \____$$ |\_______/ \__|  \__| \_______|\__|  \__| \_______|
-      $$\   $$ |                                                  
-      \$$$$$$  |                                                  
-       \______/
+                                          $$\                 
+                                          $$ |                
+   $$$$$$\   $$$$$$$\ $$$$$$$\   $$$$$$\  $$ |  $$\  $$$$$$\  
+  $$  __$$\ $$  _____|$$  __$$\  \____$$\ $$ | $$  |$$  __$$\ 
+  $$ /  $$ |\$$$$$$\  $$ |  $$ | $$$$$$$ |$$$$$$  / $$$$$$$$ |
+  $$ |  $$ | \____$$\ $$ |  $$ |$$  __$$ |$$  _$$<  $$   ____|
+  \$$$$$$$ |$$$$$$$  |$$ |  $$ |\$$$$$$$ |$$ | \$$\ \$$$$$$$\ 
+   \____$$ |\_______/ \__|  \__| \_______|\__|  \__| \_______|
+  $$\   $$ |                                                  
+  \$$$$$$  |                                                  
+   \______/
   `
 	s.writer.Write([]byte(logo))
 }

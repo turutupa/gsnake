@@ -20,6 +20,7 @@ const (
 	INSANITY    = "INSANITY"
 )
 
+var DIFFICULTIES = []string{EASY, NORMAL, HARD, INSANITY}
 var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, LEADERBOARD, EXIT}
 
 // Snake available speeds
@@ -52,18 +53,19 @@ const (
 const MAX_PLAYER_LEN = 4
 
 type Game struct {
-	screen             *Screen
-	eventPoller        events.EventPoller
-	leaderboard        *Leaderboard
-	fruit              *Fruit
-	snake              *Snake
-	player             string
-	speed              int
-	score              int
-	state              State
-	selectedMenuOption int
-	selectChan         chan bool
-	playerNameDone     chan bool
+	screen              *Screen
+	eventPoller         events.EventPoller
+	leaderboard         *Leaderboard
+	fruit               *Fruit
+	snake               *Snake
+	player              string
+	difficulty          string
+	speed               int
+	score               int
+	state               State
+	selectedMenuOption  int
+	keypressCh          chan bool
+	playerNameSubmitted chan bool
 }
 
 func NewGame(
@@ -74,18 +76,18 @@ func NewGame(
 	snake *Snake,
 ) *Game {
 	game := &Game{
-		screen:             screen,
-		eventPoller:        term,
-		leaderboard:        leaderboard,
-		fruit:              fruit,
-		snake:              snake,
-		player:             "",
-		speed:              0,
-		score:              0,
-		state:              MAIN_MENU,
-		selectedMenuOption: 1, // defaults to NORMAL
-		selectChan:         make(chan bool),
-		playerNameDone:     make(chan bool),
+		screen:              screen,
+		eventPoller:         term,
+		leaderboard:         leaderboard,
+		fruit:               fruit,
+		snake:               snake,
+		player:              "",
+		speed:               0,
+		score:               0,
+		state:               MAIN_MENU,
+		selectedMenuOption:  1, // defaults to NORMAL
+		keypressCh:          make(chan bool),
+		playerNameSubmitted: make(chan bool),
 	}
 	return game
 }
@@ -95,18 +97,17 @@ func (g *Game) Run() {
 	for {
 		for g.state == MAIN_MENU {
 			g.mainMenu()
-			<-g.selectChan // used for blocking
+			<-g.keypressCh // used for blocking
 		}
 		if g.state == FINISHED {
 			g.Stop()
 			return
 		} else if g.state == LEADERBOARD_MENU {
-			scores, ok := g.leaderboard.get()
-			if ok {
-				g.screen.renderScoreboard(scores, nil)
-				<-g.selectChan
-			}
+			scores := g.leaderboard.get(g.difficulty)
+			g.screen.renderScoreboard(g.difficulty, scores, nil)
+			<-g.keypressCh
 		} else if g.state == PLAYING {
+			g.screen.clearTerminal()
 			g.runGame()
 		}
 	}
@@ -114,9 +115,9 @@ func (g *Game) Run() {
 
 func (g *Game) Stop() {
 	select {
-	case _, ok := <-g.selectChan:
+	case _, ok := <-g.keypressCh:
 		if ok {
-			close(g.selectChan)
+			close(g.keypressCh)
 		}
 	default:
 	}
@@ -125,6 +126,7 @@ func (g *Game) Stop() {
 }
 
 func (g *Game) restart() {
+	g.player = ""
 	g.score = 0
 	g.screen.restart()
 	g.snake.restart(g.screen)
@@ -140,7 +142,6 @@ func (g *Game) mainMenu() {
 func (g *Game) runGame() {
 	var frameStart, frameTime uint32
 	var frameEnd time.Time
-	g.screen.clearTerminal()
 	g.screen.init()
 	for g.state == PLAYING {
 		frameStart = uint32(time.Now().UnixNano() / int64(time.Millisecond)) // Current time in milliseconds
@@ -163,21 +164,27 @@ func (g *Game) runGame() {
 		if g.intersects() {
 			time.Sleep(1 * time.Second)
 			g.screen.clearTerminal()
-			g.screen.GameOver()
-			isHighScore, ok := g.leaderboard.isHighScore(g.score)
-			if ok {
-				scores, _ := g.leaderboard.get()
-				if isHighScore {
-					g.state = LEADERBOARD_SUBMITTING
-					<-g.playerNameDone
-					g.leaderboard.update(g.player, g.score)
-				} else {
-					g.state = LEADERBOARD_MENU
-					g.screen.renderScoreboard(scores, nil)
-					<-g.selectChan
+			g.screen.printLogo()
+			isHighScore := g.leaderboard.isHighScore(g.difficulty, g.score)
+			scores := g.leaderboard.get(g.difficulty)
+			if isHighScore {
+				g.state = LEADERBOARD_SUBMITTING
+				g.screen.renderScoreboard(g.difficulty, scores, &Score{g.player, g.score})
+				isSubmitting := true
+				for isSubmitting {
+					select {
+					case <-g.keypressCh:
+						g.screen.renderScoreboard(g.difficulty, scores, &Score{g.player, g.score})
+					case <-g.playerNameSubmitted:
+						g.leaderboard.update(g.player, g.difficulty, g.score)
+						isSubmitting = false
+						break
+					}
 				}
 			} else {
-				<-g.selectChan
+				g.state = LEADERBOARD_MENU
+				g.screen.renderScoreboard(g.difficulty, scores, nil)
+				<-g.keypressCh
 			}
 			g.restart()
 			return
@@ -259,25 +266,29 @@ func (g *Game) userActionMainMenu(event rune) {
 		} else {
 			if selectedOpt == EASY {
 				g.speed = EASY_SPEED
+				g.difficulty = EASY
 			} else if selectedOpt == NORMAL {
 				g.speed = NORMAL_SPEED
+				g.difficulty = NORMAL
 			} else if selectedOpt == HARD {
 				g.speed = HARD_SPEED
+				g.difficulty = HARD
 			} else if selectedOpt == INSANITY {
 				g.speed = INSANITY_SPEED
+				g.difficulty = INSANITY
 			}
 			g.state = PLAYING
 		}
 	} else if event == 'q' {
 		g.onExit()
 	}
-	g.selectChan <- true
+	g.keypressCh <- true
 }
 
 func (g *Game) userActionLeaderboardMenu(event rune) {
 	if event == 'q' || g.isEnterKey(event) {
 		g.onExit()
-		g.selectChan <- true
+		g.keypressCh <- true
 	}
 }
 
@@ -292,8 +303,10 @@ func (g *Game) userActionLeaderboardSubmitting(event rune) {
 			g.player = g.player + string(event)
 		}
 	} else if g.isEnterKey(event) {
-		g.playerNameDone <- true
+		g.playerNameSubmitted <- true
+		return
 	}
+	g.keypressCh <- true
 }
 
 func (g *Game) userActionSnake(event rune) {

@@ -14,9 +14,9 @@ const (
 	colorWhite  = "\033[97m"
 )
 
-var enableStorage bool = false
-
 const LOG_NAME string = "gsnake."
+
+var enableStorage = false
 
 func EnableStorage() {
 	Info("Log persistence enabled")
@@ -63,16 +63,6 @@ func getLogFileName() string {
 	return fileName
 }
 
-func writeLogToFile(fileName, logLine string) {
-	file, err := fsutil.OpenFile(fileName)
-	if err != nil {
-		fmt.Println("Error opening log file:", err)
-		return
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(logLine)
-	if err != nil {
-		fmt.Println("Error writing log to file:", err)
-	}
+func writeLogToFile(filename, logLine string) {
+	fsutil.AppendToFile(filename, logLine)
 }

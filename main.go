@@ -18,7 +18,7 @@ const PORT_FLAG_LONG = "port"
 const MODE_FLAG_SHORT = "m"
 const MODE_FLAG_LONG = "mode"
 const LOG_FLAG_SHORT = "l"
-const LOG_FLAG_LONG = "long"
+const LOG_FLAG_LONG = "log"
 const HELP_FLAG_SHORT = "h"
 const HELP_FLAG_LONG = "help"
 const DEFAULT_PORT = 5555
@@ -31,10 +31,12 @@ func main() {
 	flag.IntVar(&port, PORT_FLAG_SHORT, DEFAULT_PORT, "")
 	flag.IntVar(&port, PORT_FLAG_LONG, DEFAULT_PORT, "")
 	flag.StringVar(&mode, MODE_FLAG_SHORT, "local", "")
+	flag.StringVar(&mode, MODE_FLAG_LONG, "local", "")
 	flag.BoolVar(&logging, LOG_FLAG_SHORT, false, "")
 	flag.BoolVar(&logging, LOG_FLAG_LONG, false, "")
 	flag.BoolVar(&help, HELP_FLAG_SHORT, false, "")
 	flag.BoolVar(&help, HELP_FLAG_LONG, false, "")
+
 	flag.Usage = displayHelp
 	flag.Parse()
 
