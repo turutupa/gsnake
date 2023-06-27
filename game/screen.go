@@ -227,6 +227,13 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighSco
 	}
 	row++
 
+	// print empty line
+	emptyLine := "|" + strings.Repeat(" ", len(title)-2) + "|"
+	for i, r := range emptyLine {
+		s.print(row, startLine+i, r)
+	}
+	row++
+
 	// print scores
 	renderedNewHighScore := false
 	i := 0
@@ -248,15 +255,17 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighSco
 
 		rightPadding := 2
 		leftPadding := 2
-		// when submitting new high score
-		// if newHighScore != nil && !renderedNewHighScore && newHighScore.score > score.score {
 		scoreStr := strconv.Itoa(sc)
 		scoreFmt = strings.Repeat(" ", leftPadding) + pl
 		if len(pl) < MAX_PLAYER_LEN && isHighScore {
-			scoreFmt = scoreFmt + strings.Repeat("_", MAX_PLAYER_LEN-len(pl))
+			// format when submitting high score
+			cursor := "_"
+			scoreFmt = scoreFmt + cursor + strings.Repeat(" ", MAX_PLAYER_LEN-len(pl)-1)
 		} else {
+			// add padding spaces for player names
 			scoreFmt = scoreFmt + strings.Repeat(" ", MAX_PLAYER_LEN-len(pl))
 		}
+		// add space between names and actual scores
 		scoreFmt = scoreFmt + strings.Repeat(" ", 2)
 		scoreFmt = scoreFmt + strings.Repeat("0", MAX_HIGH_SCORE_DIGITS-len(strconv.Itoa(sc)))
 		scoreFmt = scoreFmt + scoreStr
@@ -380,6 +389,10 @@ func (s *Screen) finishPrint() {
 
 func (s *Screen) hideCursor() {
 	fmt.Fprint(s.writer, "\033[?25l")
+}
+
+func (s *Screen) showCursor() {
+	fmt.Fprint(s.writer, "\033[?25h")
 }
 
 func (s *Screen) GameOver() {

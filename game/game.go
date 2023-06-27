@@ -123,6 +123,7 @@ func (g *Game) Stop() {
 	}
 	g.eventPoller.Close()
 	g.screen.clearTerminal()
+	g.screen.showCursor()
 }
 
 func (g *Game) restart() {
@@ -298,7 +299,7 @@ func (g *Game) userActionLeaderboardSubmitting(event rune) {
 			g.player = g.player[:len(g.player)-1]
 		}
 	}
-	if isAlphabetChar(event) {
+	if isUserAcceptedChar(event) {
 		if len(g.player) < MAX_PLAYER_LEN {
 			g.player = g.player + string(event)
 		}
@@ -344,16 +345,8 @@ func isBackspaceOrDelete(r rune) bool {
 	return r == '\b' || r == '\u007F'
 }
 
-func isAlphabetChar(r rune) bool {
-	return isLowerCaseAlphabetChar(r) || isUpperCaseAlphabetChar(r)
-}
-
-func isLowerCaseAlphabetChar(r rune) bool {
-	return byte(r) >= 97 && byte(r) <= 122
-}
-
-func isUpperCaseAlphabetChar(r rune) bool {
-	return byte(r) >= 65 && byte(r) <= 90
+func isUserAcceptedChar(r rune) bool {
+	return byte(r) >= 33 && byte(r) <= 126
 }
 
 // Accepted keys for up/down/left and right are
