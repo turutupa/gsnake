@@ -93,7 +93,7 @@ func (s *Screen) clearTerminal() {
 	s.writer.Write([]byte("\033[H\033[2J"))
 }
 
-func (s *Screen) clear(fruit *Fruit, head *Node, tail *Node, score int) {
+func (s *Screen) clear(head *Node, tail *Node) {
 	s.print(head.x, head.y, ' ')
 	s.print(tail.x, tail.y, ' ')
 }
@@ -130,7 +130,6 @@ func (s *Screen) renderMainMenu(selected int) {
 		}
 		optionIndex++
 	}
-	s.finishPrint()
 }
 
 func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
@@ -178,10 +177,9 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 			break
 		}
 	}
-	s.finishPrint()
 }
 
-func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighScore *Score) {
+func (s *Screen) renderScoreboard(difficulty string, scores []*Player, newHighScore *Player) {
 	title := "| " + "TOP SCORES" + " |"
 	var leaderboarSize int
 	if newHighScore != nil {
@@ -193,7 +191,7 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighSco
 		// this is just to make sure we always render 5
 		// rows of scores, even if player hasn't already
 		// played 5 times
-		scores = append(scores, &Score{"", 0})
+		scores = append(scores, NewPlayer(""))
 	}
 	scores = scores[:leaderboarSize]
 	marginLeft := len(title)/2 - 1
@@ -245,11 +243,11 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighSco
 		isHighScore := newHighScore != nil && !renderedNewHighScore && newHighScore.score > score.score
 		if isHighScore && !renderedNewHighScore {
 			sc = newHighScore.score
-			pl = newHighScore.player
+			pl = newHighScore.name
 			renderedNewHighScore = true
 		} else {
 			sc = score.score
-			pl = score.player
+			pl = score.name
 			i++
 		}
 
@@ -301,8 +299,6 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Score, newHighSco
 		msg = " PRESS ENTER TO CONTINUE "
 	}
 	s.printBold(row, s.cols/2-len(msg)/2, msg)
-
-	s.finishPrint()
 }
 
 /*
@@ -381,10 +377,6 @@ func (s *Screen) print(row, col int, r rune) {
 
 func (s *Screen) printBold(row, col int, r string) {
 	fmt.Fprintf(s.writer, "\033[%d;%dH\033[1m%s\033[0m", row+1, col+1, r)
-}
-
-func (s *Screen) finishPrint() {
-	fmt.Fprintf(s.writer, "\033[%d;%dH", s.rows+1, 0)
 }
 
 func (s *Screen) hideCursor() {

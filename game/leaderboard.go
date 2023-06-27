@@ -12,28 +12,23 @@ import (
 const MAX_SCORES_STORED = 50
 const FILENAME_PREFIX = "leaderboard."
 
-type Score struct {
-	player string
-	score  int
-}
-
 type Leaderboard struct {
 	enabled     bool
-	leaderboard map[string][]*Score
+	leaderboard map[string][]*Player
 }
 
 func NewLeaderboard() *Leaderboard {
-	l := &Leaderboard{true, make(map[string][]*Score)}
+	l := &Leaderboard{true, make(map[string][]*Player)}
 	for _, diff := range DIFFICULTIES {
 		filename := l.getFilename(diff)
 		_, ok := fsutil.NewCfgFile(filename)
 		if !ok {
 			l.enabled = false
 		}
-		if scores, ok := l.getPersistedScores(filename); ok {
+		if scores, ok := l.getPersistedLeaderboard(filename); ok {
 			l.leaderboard[diff] = scores
 		} else {
-			log.Error("Something went wrong retrieving local scores", nil)
+			log.Error("Something went wrong retrieving local leaderboard", nil)
 		}
 	}
 	return l
@@ -57,11 +52,11 @@ func (l *Leaderboard) isHighScore(difficulty string, score int) bool {
 	return false
 }
 
-func (l *Leaderboard) get(difficulty string) []*Score {
+func (l *Leaderboard) get(difficulty string) []*Player {
 	return l.leaderboard[difficulty]
 }
 
-func (l *Leaderboard) update(player string, difficulty string, score int) ([]*Score, bool) {
+func (l *Leaderboard) update(difficulty string, player *Player) ([]*Player, bool) {
 	if !l.enabled {
 		return nil, false
 	}
@@ -76,34 +71,34 @@ func (l *Leaderboard) update(player string, difficulty string, score int) ([]*Sc
 		log.Error("Leaderboard trying to update a difficulty that doesn't exist.", nil)
 		return nil, false
 	}
-	scores, exists := l.leaderboard[difficulty]
+	players, exists := l.leaderboard[difficulty]
 	if !exists {
-		scores = []*Score{}
+		players = []*Player{}
 	}
-	scores = append(scores, &Score{player, score})
-	sort.Slice(scores, func(i, j int) bool {
-		return scores[i].score > scores[j].score
+	players = append(players, player)
+	sort.Slice(players, func(i, j int) bool {
+		return players[i].score > players[j].score
 	})
-	if len(scores) > MAX_SCORES_STORED {
-		scores = scores[:MAX_SCORES_STORED]
+	if len(players) > MAX_SCORES_STORED {
+		players = players[:MAX_SCORES_STORED]
 	}
-	l.leaderboard[difficulty] = scores
+	l.leaderboard[difficulty] = players
 
 	// persist
 	rows := []string{}
-	for _, s := range scores {
-		rows = append(rows, s.player+"\t"+strconv.Itoa(s.score))
+	for _, s := range players {
+		rows = append(rows, s.name+"\t"+strconv.Itoa(s.score))
 	}
-	scoresData := strings.Join(rows, "\n")
-	err := fsutil.WriteFile(l.getFilename(difficulty), []byte(scoresData))
+	playersData := strings.Join(rows, "\n")
+	err := fsutil.WriteFile(l.getFilename(difficulty), []byte(playersData))
 	if err != nil {
 		return nil, false
 	}
 
-	return scores, true
+	return players, true
 }
 
-func (l *Leaderboard) getPersistedScores(filename string) ([]*Score, bool) {
+func (l *Leaderboard) getPersistedLeaderboard(filename string) ([]*Player, bool) {
 	if !l.enabled {
 		return nil, false
 	}
@@ -116,11 +111,11 @@ func (l *Leaderboard) getPersistedScores(filename string) ([]*Score, bool) {
 		return nil, false
 	} else if len(data) == 0 {
 		// file is empty
-		return []*Score{}, true
+		return []*Player{}, true
 	}
 
 	content := strings.Split(string(data), "\n")
-	scores := []*Score{}
+	scores := []*Player{}
 	for _, r := range content {
 		row := strings.Split(r, "\t")
 		if len(row) != 2 {
@@ -128,7 +123,7 @@ func (l *Leaderboard) getPersistedScores(filename string) ([]*Score, bool) {
 		}
 		player := row[0]
 		if score, err := strconv.Atoi(row[1]); err == nil {
-			scores = append(scores, &Score{player, score})
+			scores = append(scores, NewPlayer(player).WithScore(score))
 		} else {
 			return nil, false
 		}
