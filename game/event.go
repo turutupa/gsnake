@@ -15,12 +15,12 @@ const (
 )
 
 type EventBus struct {
-	state       *StateBus
+	state       *State
 	eventPoller events.EventPoller
 	strategies  map[AppState]func(rune)
 }
 
-func NewEventBus(state *StateBus, eventPoller events.EventPoller) *EventBus {
+func NewEventBus(state *State, eventPoller events.EventPoller) *EventBus {
 	return &EventBus{state, eventPoller, make(map[AppState]func(rune))}
 }
 

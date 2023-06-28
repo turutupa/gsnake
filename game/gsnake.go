@@ -5,7 +5,7 @@ import (
 )
 
 type Gsnake struct {
-	state       *StateBus
+	state       *State
 	eventBus    *EventBus
 	screen      *Screen
 	leaderboard *Leaderboard
@@ -14,7 +14,7 @@ type Gsnake struct {
 }
 
 func newGsnake(
-	stateBus *StateBus,
+	stateBus *State,
 	eventBus *EventBus,
 	screen *Screen,
 	leaderboard *Leaderboard,

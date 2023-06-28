@@ -15,15 +15,15 @@ const (
 	QUIT      AppState = "QUIT"
 )
 
-type StateBus struct {
+type State struct {
 	state       AppState
 	mode        GameMode
 	diff        string
 	subscribers []func(AppState)
 }
 
-func NewStateBus() *StateBus {
-	return &StateBus{
+func NewStateBus() *State {
+	return &State{
 		state:       MAIN_MENU, // defaults to MAIN MENU
 		mode:        SINGLE,    // defaults to single player
 		diff:        NORMAL,    // defaults to NORMAL
@@ -31,21 +31,21 @@ func NewStateBus() *StateBus {
 	}
 }
 
-func (sb *StateBus) set(appState AppState) *StateBus {
+func (sb *State) set(appState AppState) *State {
 	sb.state = appState
 	return sb
 }
 
-func (sb *StateBus) gameMode(gameMode GameMode) *StateBus {
+func (sb *State) gameMode(gameMode GameMode) *State {
 	sb.mode = gameMode
 	return sb
 }
 
-func (sb *StateBus) difficulty(difficulty string) *StateBus {
+func (sb *State) difficulty(difficulty string) *State {
 	sb.diff = difficulty
 	return sb
 }
 
-func (sb *StateBus) get() AppState {
+func (sb *State) get() AppState {
 	return sb.state
 }

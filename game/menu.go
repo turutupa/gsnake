@@ -22,31 +22,31 @@ var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, EXIT}
 var SSH_MENU_OPTIONS = []string{SINGLE_PLAYER, MULTI_PLAYER}
 
 type Menu struct {
-	*StateBus
+	state              *State
 	screen             *Screen
 	selectedMenuOption int
 	keypressCh         chan bool
 }
 
 func newMenu(
-	stateBus *StateBus,
+	state *State,
 	screen *Screen,
 	selectedMenuOption int,
 ) *Menu {
 	return &Menu{
-		StateBus:           stateBus,
+		state:              state,
 		screen:             screen,
 		selectedMenuOption: selectedMenuOption,
 		keypressCh:         make(chan bool),
 	}
 }
 
-func NewLocalMenu(stateBus *StateBus, screen *Screen) *Menu {
-	return newMenu(stateBus, screen, 1) // 1 defaults to NORMAL SPEED
+func NewLocalMenu(state *State, screen *Screen) *Menu {
+	return newMenu(state, screen, 1) // 1 defaults to NORMAL SPEED
 }
 
-func NewOnlineMenu(stateBus *StateBus, screen *Screen) *Menu {
-	return newMenu(stateBus, screen, 0) // 0 defaults to SINGLE PLAYER
+func NewOnlineMenu(state *State, screen *Screen) *Menu {
+	return newMenu(state, screen, 0) // 0 defaults to SINGLE PLAYER
 }
 
 func (m *Menu) Run() {
@@ -63,9 +63,9 @@ func (m *Menu) strategy(event rune) {
 	} else if isEnterKey(event) {
 		selectedOpt := MENU_OPTIONS[m.selectedMenuOption]
 		if selectedOpt == EXIT {
-			m.set(QUIT)
+			m.state.set(QUIT)
 		} else {
-			game := m.set(IN_GAME).gameMode(SINGLE_PLAYER)
+			game := m.state.set(IN_GAME).gameMode(SINGLE_PLAYER)
 			switch selectedOpt {
 			case EASY:
 				game.difficulty(EASY)
@@ -78,7 +78,7 @@ func (m *Menu) strategy(event rune) {
 			}
 		}
 	} else if event == 'q' {
-		m.set(QUIT)
+		m.state.set(QUIT)
 	}
 	m.keypressCh <- true
 }
