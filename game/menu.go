@@ -50,7 +50,7 @@ func NewOnlineMenu(stateBus *StateBus, screen *Screen) *Menu {
 }
 
 func (m *Menu) Run() {
-	m.screen.clearTerminal()
+	m.screen.clear()
 	m.screen.renderMainMenu(m.selectedMenuOption)
 	<-m.keypressCh
 }

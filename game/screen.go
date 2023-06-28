@@ -61,6 +61,10 @@ func (s *Screen) restart() {
 	s.isFirstRender = newScreen.isFirstRender
 }
 
+func (s *Screen) clear() {
+	s.writer.Write([]byte("\033[H\033[2J"))
+}
+
 func (s *Screen) updateScoreboard(score int) {
 	padded_score := strconv.Itoa(score)
 	padded_score = strings.Repeat("0", 5-len(padded_score)) + padded_score
@@ -75,31 +79,8 @@ func (s *Screen) updateScoreboard(score int) {
 	}
 }
 
-// print borders
-func (s *Screen) init() {
-	s.hideCursor()
-	s.updateScoreboard(0)
-	for i := 0; i < s.cols; i++ {
-		s.print(0, i, s.matrix[0][i])
-		s.print(s.rows-1, i, s.matrix[s.rows-1][i])
-	}
-	for i := 0; i < s.rows; i++ {
-		s.print(i, 0, s.matrix[i][0])
-		s.print(i, s.cols-1, s.matrix[i][s.cols-1])
-	}
-}
-
-func (s *Screen) clearTerminal() {
-	s.writer.Write([]byte("\033[H\033[2J"))
-}
-
-func (s *Screen) clear(head *Node, tail *Node) {
-	s.print(head.x, head.y, ' ')
-	s.print(tail.x, tail.y, ' ')
-}
-
 func (s *Screen) renderMainMenu(selected int) {
-	s.init()
+	s.renderBoard()
 	title := "SELECT GAME MODE"
 	startLine := s.cols/2 - len(title)/2 - 1
 	row := s.rows / 5
@@ -130,6 +111,24 @@ func (s *Screen) renderMainMenu(selected int) {
 		}
 		optionIndex++
 	}
+}
+
+func (s *Screen) renderBoard() {
+	s.hideCursor()
+	s.updateScoreboard(0)
+	for i := 0; i < s.cols; i++ {
+		s.print(0, i, s.matrix[0][i])
+		s.print(s.rows-1, i, s.matrix[s.rows-1][i])
+	}
+	for i := 0; i < s.rows; i++ {
+		s.print(i, 0, s.matrix[i][0])
+		s.print(i, s.cols-1, s.matrix[i][s.cols-1])
+	}
+}
+
+func (s *Screen) remove(head *Node, tail *Node) {
+	s.print(head.x, head.y, ' ')
+	s.print(tail.x, tail.y, ' ')
 }
 
 func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {

@@ -75,7 +75,7 @@ func (g *Gsnake) Run() {
 			g.menu.Run()
 		}
 		if g.state.get() == IN_GAME {
-			g.screen.clearTerminal()
+			g.screen.clear()
 			g.game.setDifficulty(g.state.diff)
 			g.game.Run()
 			g.game.Restart()
@@ -88,6 +88,6 @@ func (g *Gsnake) Run() {
 func (g *Gsnake) Stop() {
 	g.game.Stop()
 	g.eventBus.Stop()
-	g.screen.clearTerminal()
+	g.screen.clear()
 	g.screen.showCursor()
 }

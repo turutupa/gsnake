@@ -60,10 +60,10 @@ func NewGame(
 func (g *Game) Run() {
 	var frameStart, frameTime uint32
 	var frameEnd time.Time
-	g.screen.init()
+	g.screen.renderBoard()
 	for g.state == PLAYING {
 		frameStart = uint32(time.Now().UnixNano() / int64(time.Millisecond)) // Current time in milliseconds
-		g.screen.clear(g.snake.head, g.snake.tail)
+		g.screen.remove(g.snake.head, g.snake.tail)
 		g.snake.move()
 		if g.ateFruit() {
 			g.player.score += 10
@@ -81,7 +81,7 @@ func (g *Game) Run() {
 		g.screen.renderSnake(g.fruit, g.snake.head, g.snake.tail, g.player.score)
 		if g.intersects() {
 			time.Sleep(1 * time.Second)
-			g.screen.clearTerminal()
+			g.screen.clear()
 			g.screen.printLogo()
 			isHighScore := g.leaderboard.isHighScore(g.difficulty, g.player.score)
 			scores := g.leaderboard.get(g.difficulty)
