@@ -33,38 +33,41 @@ func newGsnake(
 	}
 }
 
-func NewOnlineGsnake(
-	eventPoller events.EventPoller,
-	screen *Screen,
-) *Gsnake {
-	state := NewState()
-	leaderboard := NewLeaderboard()
+func NewOnlineGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnake {
 	rows := screen.rows
 	cols := screen.cols
+	state := NewState()
+	eventBus := NewEventBus(state, eventPoller)
+	leaderboard := NewLeaderboard()
+	menu := NewOnlineMenu(state, screen)
+	game := NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen))
+
 	return newGsnake(
 		state,
-		NewEventBus(state, eventPoller),
+		eventBus,
 		screen,
 		leaderboard,
-		NewOnlineMenu(state, screen),
-		NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen)),
+		menu,
+		game,
 	)
 }
 
-func NewLocalGsnake(
-	screen *Screen,
-) *Gsnake {
-	state := NewState()
-	leaderboard := NewLeaderboard()
+func NewLocalGsnake(screen *Screen) *Gsnake {
 	rows := screen.rows
 	cols := screen.cols
+	state := NewState()
+	eventBus := NewEventBus(state, NewTerm())
+	leaderboard := NewLeaderboard()
+	menu := NewLocalMenu(state, screen)
+	game := NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen))
+
 	return newGsnake(
 		state,
-		NewEventBus(state, NewTerm()),
+		eventBus,
 		screen,
 		leaderboard,
-		NewOnlineMenu(state, screen),
-		NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen)),
+		menu,
+		game,
 	)
 }
 
