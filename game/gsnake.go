@@ -33,7 +33,8 @@ func newGsnake(
 	}
 }
 
-func NewOnlineGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnake {
+// injection wrapper to create multiplayer game modes
+func NewMultiplayerGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnake {
 	rows := screen.rows
 	cols := screen.cols
 	state := NewState()
@@ -52,6 +53,7 @@ func NewOnlineGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnake {
 	)
 }
 
+// injection wrapper to create single player game modes
 func NewLocalGsnake(screen *Screen) *Gsnake {
 	rows := screen.rows
 	cols := screen.cols
