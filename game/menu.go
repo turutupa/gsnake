@@ -6,15 +6,14 @@ import (
 
 // Main Menu options
 const (
-	EXIT        string = "EXIT"
-	LEADERBOARD string = "LEADERBOARD"
-	EASY        string = "EASY"
-	NORMAL      string = "NORMAL"
-	HARD        string = "HARD"
-	INSANITY    string = "INSANITY"
-
-	SINGLE_PLAYER = "SINGLE_PLAYER"
-	MULTI_PLAYER  = "MULTI_PLAYER"
+	EXIT          string = "EXIT"
+	LEADERBOARD   string = "LEADERBOARD"
+	EASY          string = "EASY"
+	NORMAL        string = "NORMAL"
+	HARD          string = "HARD"
+	INSANITY      string = "INSANITY"
+	SINGLE_PLAYER string = "SINGLE_PLAYER"
+	MULTI_PLAYER  string = "MULTI_PLAYER"
 )
 
 var DIFFICULTIES = []string{EASY, NORMAL, HARD, INSANITY}
@@ -63,22 +62,22 @@ func (m *Menu) strategy(event rune) {
 	} else if isEnterKey(event) {
 		selectedOpt := MENU_OPTIONS[m.selectedMenuOption]
 		if selectedOpt == EXIT {
-			m.state.set(QUIT)
+			m.state.setState(QUIT)
 		} else {
-			game := m.state.set(IN_GAME).gameMode(SINGLE_PLAYER)
+			game := m.state.setState(IN_GAME).setGameMode(SINGLE)
 			switch selectedOpt {
 			case EASY:
-				game.difficulty(EASY)
+				game.setDifficulty(EASY)
 			case NORMAL:
-				game.difficulty(NORMAL)
+				game.setDifficulty(NORMAL)
 			case HARD:
-				game.difficulty(HARD)
+				game.setDifficulty(HARD)
 			case INSANITY:
-				game.difficulty(INSANITY)
+				game.setDifficulty(INSANITY)
 			}
 		}
 	} else if event == 'q' {
-		m.state.set(QUIT)
+		m.state.setState(QUIT)
 	}
 	m.keypressCh <- true
 }

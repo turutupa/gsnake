@@ -78,11 +78,20 @@ func (g *Gsnake) Run() {
 			g.menu.Run()
 		}
 		if g.state.get() == IN_GAME {
-			g.screen.clear()
-			g.game.setDifficulty(g.state.diff)
-			g.game.Run()
-			g.game.Restart()
-			g.state.set(MAIN_MENU)
+			switch g.state.gameMode {
+			case SINGLE:
+				g.screen.clear()
+				g.game.setDifficulty(g.state.difficulty)
+				g.game.Run()
+				g.game.Restart()
+				g.state.setState(MAIN_MENU)
+			case MULTI:
+				g.screen.clear()
+				g.game.setDifficulty(g.state.difficulty)
+				g.game.Run()
+				g.game.Restart()
+				g.state.setState(MAIN_MENU)
+			}
 		}
 	}
 	g.Stop()
