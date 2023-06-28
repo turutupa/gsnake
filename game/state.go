@@ -22,7 +22,7 @@ type State struct {
 	subscribers []func(AppState)
 }
 
-func NewStateBus() *State {
+func NewState() *State {
 	return &State{
 		state:       MAIN_MENU, // defaults to MAIN MENU
 		mode:        SINGLE,    // defaults to single player

@@ -14,7 +14,7 @@ type Gsnake struct {
 }
 
 func newGsnake(
-	stateBus *State,
+	state *State,
 	eventBus *EventBus,
 	screen *Screen,
 	leaderboard *Leaderboard,
@@ -24,7 +24,7 @@ func newGsnake(
 	eventBus.subscribe(MAIN_MENU, menu.strategy)
 	eventBus.subscribe(IN_GAME, game.strategy)
 	return &Gsnake{
-		state:       stateBus,
+		state:       state,
 		eventBus:    eventBus,
 		screen:      screen,
 		leaderboard: leaderboard,
@@ -37,16 +37,16 @@ func NewOnlineGsnake(
 	eventPoller events.EventPoller,
 	screen *Screen,
 ) *Gsnake {
-	stateBus := NewStateBus()
+	state := NewState()
 	leaderboard := NewLeaderboard()
 	rows := screen.rows
 	cols := screen.cols
 	return newGsnake(
-		stateBus,
-		NewEventBus(stateBus, eventPoller),
+		state,
+		NewEventBus(state, eventPoller),
 		screen,
 		leaderboard,
-		NewOnlineMenu(stateBus, screen),
+		NewOnlineMenu(state, screen),
 		NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen)),
 	)
 }
@@ -54,16 +54,16 @@ func NewOnlineGsnake(
 func NewLocalGsnake(
 	screen *Screen,
 ) *Gsnake {
-	stateBus := NewStateBus()
+	state := NewState()
 	leaderboard := NewLeaderboard()
 	rows := screen.rows
 	cols := screen.cols
 	return newGsnake(
-		stateBus,
-		NewEventBus(stateBus, NewTerm()),
+		state,
+		NewEventBus(state, NewTerm()),
 		screen,
 		leaderboard,
-		NewOnlineMenu(stateBus, screen),
+		NewOnlineMenu(state, screen),
 		NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen)),
 	)
 }
