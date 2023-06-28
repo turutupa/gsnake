@@ -12,6 +12,7 @@ import (
 	"turutupa/gsnake/ssh"
 )
 
+// flags
 const SSH_MODE = "ssh"
 const PORT_FLAG_SHORT = "p"
 const PORT_FLAG_LONG = "port"
@@ -22,6 +23,10 @@ const LOG_FLAG_LONG = "log"
 const HELP_FLAG_SHORT = "h"
 const HELP_FLAG_LONG = "help"
 const DEFAULT_PORT = 5555
+
+// game settings
+const rows = 20
+const cols = 50
 
 func main() {
 	var port int
@@ -50,18 +55,15 @@ func main() {
 		sshServer := ssh.NewSshServer(port)
 		sshServer.Run(snakeApp)
 	} else {
-		snakeApp(os.Stdout, gsnake.NewTerm()).Run()
+		screen := gsnake.NewScreen(os.Stdout, rows, cols)
+		game := gsnake.NewLocalGsnake(screen)
+		game.Run()
 	}
 }
 
 func snakeApp(writer io.Writer, eventsPoller events.EventPoller) ssh.SshApp {
-	rows := 20
-	cols := 50
 	screen := gsnake.NewScreen(writer, rows, cols)
-	leaderboard := gsnake.NewLeaderboard()
-	snake := gsnake.NewSnake(screen)
-	fruit := gsnake.NewFruit(rows, cols)
-	return gsnake.NewGame(eventsPoller, screen, leaderboard, fruit, snake)
+	return gsnake.NewOnlineGsnake(eventsPoller, screen)
 }
 
 func displayHelp() {

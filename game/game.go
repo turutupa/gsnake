@@ -1,31 +1,8 @@
 package gsnake
 
 import (
-	"math"
-	"strconv"
 	"time"
-
-	"turutupa/gsnake/events"
 )
-
-type MenuOptionOffline int
-
-// Main Menu options
-const (
-	EXIT        = "EXIT"
-	LEADERBOARD = "LEADERBOARD"
-	EASY        = "EASY"
-	NORMAL      = "NORMAL"
-	HARD        = "HARD"
-	INSANITY    = "INSANITY"
-
-	SINGLE_PLAYER = "SINGLE_PLAYER"
-	MULTI_PLAYER  = "MULTI_PLAYER"
-)
-
-var DIFFICULTIES = []string{EASY, NORMAL, HARD, INSANITY}
-var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, EXIT}
-var SSH_MENU_OPTIONS = []string{SINGLE_PLAYER, MULTI_PLAYER}
 
 // Snake available speeds
 const (
@@ -35,44 +12,31 @@ const (
 	INSANITY_SPEED = 20
 )
 
-// Int value of arrow keys
-const (
-	ARROW_UP    int = 65
-	ARROW_DOWN  int = 66
-	ARROW_RIGHT int = 67
-	ARROW_LEFT  int = 68
-)
-
-// Game State
-type State int
-
-const (
-	MAIN_MENU              State = 1
-	PLAYING                State = 2
-	LEADERBOARD_MENU       State = 3
-	LEADERBOARD_SUBMITTING State = 4
-	FINISHED               State = 5
-)
-
 const MAX_PLAYER_LEN = 4
+
+type GameState int
+
+const (
+	PLAYING                GameState = 1
+	LEADERBOARD_MENU       GameState = 2
+	LEADERBOARD_SUBMITTING GameState = 3
+	FINISHED               GameState = 4
+)
 
 type Game struct {
 	screen              *Screen
-	eventPoller         events.EventPoller
 	leaderboard         *Leaderboard
 	fruit               *Fruit
 	snake               *Snake
 	player              *Player
 	difficulty          string
 	speed               int
-	state               State
-	selectedMenuOption  int
+	state               GameState
 	keypressCh          chan bool
 	playerNameSubmitted chan bool
 }
 
 func NewGame(
-	term events.EventPoller,
 	screen *Screen,
 	leaderboard *Leaderboard,
 	fruit *Fruit,
@@ -80,14 +44,13 @@ func NewGame(
 ) *Game {
 	game := &Game{
 		screen:              screen,
-		eventPoller:         term,
 		leaderboard:         leaderboard,
 		fruit:               fruit,
 		snake:               snake,
 		player:              NewPlayer(""),
 		speed:               0,
-		state:               MAIN_MENU,
-		selectedMenuOption:  1, // defaults to NORMAL
+		difficulty:          NORMAL,
+		state:               PLAYING,
 		keypressCh:          make(chan bool),
 		playerNameSubmitted: make(chan bool),
 	}
@@ -95,53 +58,6 @@ func NewGame(
 }
 
 func (g *Game) Run() {
-	go g.executeUserInput()
-	for {
-		for g.state == MAIN_MENU {
-			g.mainMenu()
-			<-g.keypressCh // used for blocking
-		}
-		if g.state == FINISHED {
-			g.Stop()
-			return
-		} else if g.state == LEADERBOARD_MENU {
-			scores := g.leaderboard.get(g.difficulty)
-			g.screen.renderScoreboard(g.difficulty, scores, nil)
-			<-g.keypressCh
-		} else if g.state == PLAYING {
-			g.screen.clearTerminal()
-			g.runGame()
-		}
-	}
-}
-
-func (g *Game) Stop() {
-	select {
-	case _, ok := <-g.keypressCh:
-		if ok {
-			close(g.keypressCh)
-		}
-	default:
-	}
-	g.eventPoller.Close()
-	g.screen.clearTerminal()
-	g.screen.showCursor()
-}
-
-func (g *Game) restart() {
-	g.player = NewPlayer("")
-	g.screen.restart()
-	g.snake.restart(g.screen)
-	g.fruit.new()
-	g.state = MAIN_MENU
-}
-
-func (g *Game) mainMenu() {
-	g.screen.clearTerminal()
-	g.screen.renderMainMenu(g.selectedMenuOption)
-}
-
-func (g *Game) runGame() {
 	var frameStart, frameTime uint32
 	var frameEnd time.Time
 	g.screen.init()
@@ -188,7 +104,6 @@ func (g *Game) runGame() {
 				g.screen.renderScoreboard(g.difficulty, scores, nil)
 				<-g.keypressCh
 			}
-			g.restart()
 			return
 		}
 		//  adding some extra time when going vertical because it feels faster
@@ -207,6 +122,35 @@ func (g *Game) runGame() {
 				time.Sleep(sleepDuration)
 			}
 		}
+	}
+}
+
+func (g *Game) Stop() {
+	g.state = FINISHED
+}
+
+func (g *Game) Restart() {
+	g.player = NewPlayer("")
+	g.screen.restart()
+	g.snake.restart(g.screen)
+	g.fruit.new()
+	g.state = PLAYING
+}
+
+func (g *Game) setDifficulty(diff string) {
+	switch diff {
+	case EASY:
+		g.speed = EASY_SPEED
+		g.difficulty = EASY
+	case NORMAL:
+		g.speed = NORMAL_SPEED
+		g.difficulty = NORMAL
+	case HARD:
+		g.speed = HARD_SPEED
+		g.difficulty = HARD
+	case INSANITY:
+		g.speed = INSANITY_SPEED
+		g.difficulty = INSANITY
 	}
 }
 
@@ -234,62 +178,20 @@ func (g *Game) intersects() bool {
 	return false
 }
 
-func (g *Game) executeUserInput() {
-	for {
-		event, err := g.eventPoller.Poll()
-		if err != nil {
-			g.onExit()
-			return
-		}
-		e := rune(event)
-		if g.state == MAIN_MENU {
-			g.userActionMainMenu(e)
-		} else if g.state == PLAYING {
-			g.userActionSnake(e)
-		} else if g.state == LEADERBOARD_MENU {
-			g.userActionLeaderboardMenu(e)
-		} else if g.state == LEADERBOARD_SUBMITTING {
-			g.userActionLeaderboardSubmitting(e)
-		}
+func (g *Game) strategy(event rune) {
+	switch g.state {
+	case PLAYING:
+		g.userActionSnake(event)
+	case LEADERBOARD_MENU:
+		g.userActionLeaderboardMenu(event)
+	case LEADERBOARD_SUBMITTING:
+		g.userActionLeaderboardSubmitting(event)
 	}
-}
-
-func (g *Game) userActionMainMenu(event rune) {
-	if g.isUp(event) {
-		g.selectedMenuOption = int(math.Max(float64(0), float64(g.selectedMenuOption-1)))
-	} else if g.isDown(event) {
-		g.selectedMenuOption = int(math.Min(float64(len(MENU_OPTIONS)-1), float64(g.selectedMenuOption+1)))
-	} else if g.isEnterKey(event) {
-		selectedOpt := MENU_OPTIONS[g.selectedMenuOption]
-		if selectedOpt == EXIT {
-			g.onExit()
-		} else if selectedOpt == LEADERBOARD {
-			g.state = LEADERBOARD_MENU
-		} else {
-			if selectedOpt == EASY {
-				g.speed = EASY_SPEED
-				g.difficulty = EASY
-			} else if selectedOpt == NORMAL {
-				g.speed = NORMAL_SPEED
-				g.difficulty = NORMAL
-			} else if selectedOpt == HARD {
-				g.speed = HARD_SPEED
-				g.difficulty = HARD
-			} else if selectedOpt == INSANITY {
-				g.speed = INSANITY_SPEED
-				g.difficulty = INSANITY
-			}
-			g.state = PLAYING
-		}
-	} else if event == 'q' {
-		g.onExit()
-	}
-	g.keypressCh <- true
 }
 
 func (g *Game) userActionLeaderboardMenu(event rune) {
-	if event == 'q' || g.isEnterKey(event) {
-		g.onExit()
+	if event == 'q' || isEnterKey(event) {
+		g.state = FINISHED
 		g.keypressCh <- true
 	}
 }
@@ -304,7 +206,7 @@ func (g *Game) userActionLeaderboardSubmitting(event rune) {
 		if len(g.player.name) < MAX_PLAYER_LEN {
 			g.player.name = g.player.name + string(event)
 		}
-	} else if g.isEnterKey(event) {
+	} else if isEnterKey(event) {
 		g.playerNameSubmitted <- true
 		return
 	}
@@ -313,82 +215,23 @@ func (g *Game) userActionLeaderboardSubmitting(event rune) {
 
 func (g *Game) userActionSnake(event rune) {
 	pointing := g.snake.pointsTo()
-	if g.isUp(event) {
+	if isUp(event) {
 		if pointing != DOWN {
 			g.snake.point(UP)
 		}
-	} else if g.isDown(event) {
+	} else if isDown(event) {
 		if pointing != UP {
 			g.snake.point(DOWN)
 		}
-	} else if g.isLeft(event) {
+	} else if isLeft(event) {
 		if pointing != RIGHT {
 			g.snake.point(LEFT)
 		}
-	} else if g.isRight(event) {
+	} else if isRight(event) {
 		if pointing != LEFT {
 			g.snake.point(RIGHT)
 		}
 	} else if event == 'q' {
-		g.onExit()
-	}
-}
-
-func (g *Game) onExit() {
-	if g.state == MAIN_MENU {
 		g.state = FINISHED
-		return
 	}
-	g.restart()
-}
-
-func isBackspaceOrDelete(r rune) bool {
-	return r == '\b' || r == '\u007F'
-}
-
-func isUserAcceptedChar(r rune) bool {
-	return byte(r) >= 33 && byte(r) <= 126
-}
-
-// Accepted keys for up/down/left and right are
-// - wasd
-// - hjkl
-// - arrow keys
-func (g *Game) isUp(event rune) bool {
-	return event == 'w' || int(event) == ARROW_UP || event == 'k'
-}
-
-func (g *Game) isDown(event rune) bool {
-	return event == 's' || int(event) == ARROW_DOWN || event == 'j'
-}
-
-func (g *Game) isLeft(event rune) bool {
-	return event == 'a' || int(event) == ARROW_LEFT || event == 'h'
-}
-
-func (g *Game) isRight(event rune) bool {
-	return event == 'd' || int(event) == ARROW_RIGHT || event == 'l'
-}
-
-// enter keys are
-// - enter
-// - spacebar
-// - \r which I'm not sure which key is that tbh
-func (g *Game) isEnterKey(input rune) bool {
-	in := byte(input)
-	enterKeys := [2]byte{'\n', '\r'} // Byte representations of "enter" keys
-	for _, key := range enterKeys {
-		if in == key {
-			return true
-		}
-	}
-	if int(in) == 32 { // space
-		return true
-	}
-	return false
-}
-
-func toInt(str string) int {
-	s, _ := strconv.Atoi(str)
-	return s
 }
