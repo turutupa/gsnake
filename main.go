@@ -63,7 +63,7 @@ func main() {
 
 func snakeApp(writer io.Writer, eventsPoller events.EventPoller) ssh.SshApp {
 	screen := gsnake.NewScreen(writer, rows, cols)
-	return gsnake.NewOnlineGsnake(eventsPoller, screen)
+	return gsnake.NewMultiplayerGsnake(eventsPoller, screen)
 }
 
 func displayHelp() {
