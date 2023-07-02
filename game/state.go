@@ -31,21 +31,21 @@ func NewState() *State {
 	}
 }
 
-func (sb *State) setState(appState AppState) *State {
+func (sb *State) Get() AppState {
+	return sb.state
+}
+
+func (sb *State) SetState(appState AppState) *State {
 	sb.state = appState
 	return sb
 }
 
-func (sb *State) setGameMode(gameMode GameMode) *State {
+func (sb *State) SetGameMode(gameMode GameMode) *State {
 	sb.gameMode = gameMode
 	return sb
 }
 
-func (sb *State) setDifficulty(difficulty string) *State {
+func (sb *State) SetDifficulty(difficulty string) *State {
 	sb.difficulty = difficulty
 	return sb
-}
-
-func (sb *State) get() AppState {
-	return sb.state
 }

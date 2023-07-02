@@ -34,7 +34,7 @@ func NewLeaderboard() *Leaderboard {
 	return l
 }
 
-func (l *Leaderboard) isHighScore(difficulty string, score int) bool {
+func (l *Leaderboard) IsHighScore(difficulty string, score int) bool {
 	if score == 0 {
 		return false
 	}
@@ -52,11 +52,11 @@ func (l *Leaderboard) isHighScore(difficulty string, score int) bool {
 	return false
 }
 
-func (l *Leaderboard) get(difficulty string) []*Player {
+func (l *Leaderboard) Get(difficulty string) []*Player {
 	return l.leaderboard[difficulty]
 }
 
-func (l *Leaderboard) update(difficulty string, player *Player) ([]*Player, bool) {
+func (l *Leaderboard) Update(difficulty string, player *Player) ([]*Player, bool) {
 	if !l.enabled {
 		return nil, false
 	}

@@ -48,3 +48,12 @@ func generateUUID() string {
 
 	return string(uuidStr)
 }
+
+// so far only used to prompt for user input
+func (p *Player) Strategy(event rune) {
+	// if len(p.name) >= MAX_PLAYER_NAME_LEN {
+	//   // don't do shit
+	// } else if isBackspaceOrDelete(){
+
+	// } else if isUserAcceptedChar()
+}

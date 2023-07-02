@@ -18,72 +18,28 @@ const MAX_HIGH_SCORE_DIGITS = 4
 
 type Screen struct {
 	writer        io.Writer
-	rows          int
-	cols          int
-	matrix        [][]rune
 	isFirstRender bool
 }
 
-func NewScreen(writer io.Writer, rows int, cols int) *Screen {
-	var matrix [][]rune
-	for i := 0; i < rows; i++ {
-		row := make([]rune, cols)
-		matrix = append(matrix, row)
-	}
-
-	for i := 0; i < rows; i++ {
-		for j := 0; j < cols; j++ {
-			var cell rune
-			if i == 0 && j == 0 { // top left
-				cell = TOP_LEFT
-			} else if i == 0 && j == cols-1 { // top right
-				cell = TOP_RIGHT
-			} else if i == rows-1 && j == 0 { // bottom left
-				cell = BOTTOM_LEFT
-			} else if i == rows-1 && j == cols-1 { // bottom right
-				cell = BOTTOM_RIGHT
-			} else if i == 0 || i == rows-1 { // top && bottom rows
-				cell = HORIZONTAL
-			} else if j == 0 || j == cols-1 { // left && right cols
-				cell = VERTICAL
-			} else {
-				cell = ' '
-			}
-			matrix[i][j] = cell
-		}
-	}
-	return &Screen{writer, rows, cols, matrix, true}
+func NewScreen(writer io.Writer) *Screen {
+	return &Screen{writer, true}
 }
 
-func (s *Screen) restart() {
-	newScreen := NewScreen(s.writer, s.rows, s.cols)
-	s.matrix = newScreen.matrix
-	s.isFirstRender = newScreen.isFirstRender
+func (s *Screen) Restart() {
+	s.isFirstRender = true
 }
 
-func (s *Screen) clear() {
+func (s *Screen) Clear() {
 	s.writer.Write([]byte("\033[H\033[2J"))
 }
 
-func (s *Screen) updateScoreboard(score int) {
-	padded_score := strconv.Itoa(score)
-	padded_score = strings.Repeat("0", 5-len(padded_score)) + padded_score
-	scoreboard := "[ SCORE ]──[ " + padded_score + " ]"
-	quitMsg := "[ 'q' to Quit ]"
-	padding := 4
-	scoreboard = scoreboard + strings.Repeat("─", s.cols-len(scoreboard)-len(quitMsg)-padding) + quitMsg
-	j := padding
-	for _, r := range scoreboard {
-		s.matrix[0][j] = r
-		j++
-	}
-}
+func (s *Screen) PromptPlayerName() {}
 
-func (s *Screen) renderMainMenu(selected int) {
-	s.renderBoard()
+func (s *Screen) RenderMainMenu(board *Board, selected int) {
+	s.RenderBoard(board)
 	title := "SELECT GAME MODE"
-	startLine := s.cols/2 - len(title)/2 - 1
-	row := s.rows / 5
+	startLine := board.cols/2 - len(title)/2 - 1
+	row := board.rows / 5
 	s.printBold(row, startLine, title)
 	row += 2
 	optionIndex := 0
@@ -113,30 +69,63 @@ func (s *Screen) renderMainMenu(selected int) {
 	}
 }
 
-func (s *Screen) renderBoard() {
-	s.hideCursor()
-	s.updateScoreboard(0)
-	for i := 0; i < s.cols; i++ {
-		s.print(0, i, s.matrix[0][i])
-		s.print(s.rows-1, i, s.matrix[s.rows-1][i])
+func (s *Screen) RenderBoard(board *Board) {
+	for i := 0; i < board.cols; i++ {
+		s.print(0, i, board.matrix[0][i])
+		s.print(board.rows-1, i, board.matrix[board.rows-1][i])
 	}
-	for i := 0; i < s.rows; i++ {
-		s.print(i, 0, s.matrix[i][0])
-		s.print(i, s.cols-1, s.matrix[i][s.cols-1])
+	for i := 0; i < board.rows; i++ {
+		s.print(i, 0, board.matrix[i][0])
+		s.print(i, board.cols-1, board.matrix[i][board.cols-1])
 	}
 }
 
-func (s *Screen) remove(head *Node, tail *Node) {
+func (s *Screen) Remove(head *Node, tail *Node) {
 	s.print(head.x, head.y, ' ')
 	s.print(tail.x, tail.y, ' ')
 }
 
-func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
-	// - render fruit -
-	if s.matrix[fruit.x][fruit.y] == '@' {
-		s.print(fruit.x, fruit.y, '@')
+func (s *Screen) RenderCountdown(n int) {
+	switch n {
+	case 1:
+		s.writer.Write([]byte(ONE))
+	case 2:
+		s.writer.Write([]byte(TWO))
+	case 3:
+		s.writer.Write([]byte(THREE))
+	case 4:
+		s.writer.Write([]byte(FOUR))
+	case 5:
+		s.writer.Write([]byte(FIVE))
 	}
+}
 
+func (s *Screen) RenderFruit(fruit *Fruit) {
+	s.print(fruit.x, fruit.y, '@')
+}
+
+// used in solo game
+func (s *Screen) RenderScore(board *Board, score int) {
+	// - top border -
+	// we only want to re-render the score so
+	// calcualte where the score is positioned,
+	// which is between the second set of brackets
+	bracket_counter := 0
+	for j := 0; j < board.cols; j++ {
+		if board.matrix[0][j] == '[' || board.matrix[0][j] == ']' {
+			bracket_counter = bracket_counter + 1
+			continue
+		}
+		if bracket_counter == 3 {
+			s.print(0, j, board.matrix[0][j])
+		}
+		if bracket_counter >= 4 {
+			break
+		}
+	}
+}
+
+func (s *Screen) RenderSnake(head *Node, tail *Node) {
 	// - render snake -
 	// the first time we render the entire snake
 	// the rest of the time only the parts of the snake
@@ -158,28 +147,12 @@ func (s *Screen) renderSnake(fruit *Fruit, head *Node, tail *Node, score int) {
 		}
 		s.print(node.x, node.y, node.render)
 	}
-
-	// - top border -
-	// we only want to re-render the score so
-	// calcualte where the score is positioned,
-	// which is between the second set of brackets
-	bracket_counter := 0
-	for j := 0; j < s.cols; j++ {
-		if s.matrix[0][j] == '[' || s.matrix[0][j] == ']' {
-			bracket_counter = bracket_counter + 1
-			continue
-		}
-		if bracket_counter == 3 {
-			s.print(0, j, s.matrix[0][j])
-		}
-		if bracket_counter >= 4 {
-			break
-		}
-	}
 }
 
-func (s *Screen) renderScoreboard(difficulty string, scores []*Player, newHighScore *Player) {
+func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Player, newHighScore *Player) {
 	title := "| " + "TOP SCORES" + " |"
+	// how many high scores to render, if there is a new one,
+	// that one is going to be the fifth top score
 	var leaderboarSize int
 	if newHighScore != nil {
 		leaderboarSize = 4
@@ -194,18 +167,20 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Player, newHighSc
 	}
 	scores = scores[:leaderboarSize]
 	marginLeft := len(title)/2 - 1
-	startLine := s.cols/2 - marginLeft
-	row := s.rows/3 + 1
+	startLine := board.cols/2 - marginLeft
+	row := board.rows/3 + 1
 
-	// print border top
+	// print top border
 	for i := 0; i < len(title); i++ {
 		position := startLine + i
-		if i == 0 {
+		switch i {
+		case 0:
 			s.print(row, position, TOP_LEFT)
-		} else if i == len(title)-1 {
+		case len(title) - 1:
 			s.print(row, position, TOP_RIGHT)
-		} else {
+		default:
 			s.print(row, position, HORIZONTAL)
+
 		}
 	}
 	row++
@@ -254,16 +229,17 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Player, newHighSc
 		leftPadding := 2
 		scoreStr := strconv.Itoa(sc)
 		scoreFmt = strings.Repeat(" ", leftPadding) + pl
-		if len(pl) < MAX_PLAYER_LEN && isHighScore {
+		if len(pl) < MAX_PLAYER_NAME_LEN && isHighScore {
 			// format when submitting high score
 			cursor := "_"
-			scoreFmt = scoreFmt + cursor + strings.Repeat(" ", MAX_PLAYER_LEN-len(pl)-1)
+			scoreFmt = scoreFmt + cursor + strings.Repeat(" ", MAX_PLAYER_NAME_LEN-len(pl)-1)
 		} else {
 			// add padding spaces for player names
-			scoreFmt = scoreFmt + strings.Repeat(" ", MAX_PLAYER_LEN-len(pl))
+			scoreFmt = scoreFmt + strings.Repeat(" ", MAX_PLAYER_NAME_LEN-len(pl))
 		}
 		// add space between names and actual scores
 		scoreFmt = scoreFmt + strings.Repeat(" ", 2)
+		// add leading zeroes to score
 		scoreFmt = scoreFmt + strings.Repeat("0", MAX_HIGH_SCORE_DIGITS-len(strconv.Itoa(sc)))
 		scoreFmt = scoreFmt + scoreStr
 		scoreFmt = scoreFmt + strings.Repeat(" ", rightPadding) // add padding to the right if needed
@@ -297,77 +273,23 @@ func (s *Screen) renderScoreboard(difficulty string, scores []*Player, newHighSc
 	} else {
 		msg = " PRESS ENTER TO CONTINUE "
 	}
-	s.printBold(row, s.cols/2-len(msg)/2, msg)
+	s.printBold(row, board.cols/2-len(msg)/2, msg)
 }
 
-/*
-* updates the snake on the matrix
- */
-func (s *Screen) update(fruit *Fruit, node *Node, score int) {
-	// render scoreboard
-	s.updateScoreboard(score)
+func (s *Screen) HideCursor() {
+	fmt.Fprint(s.writer, "\033[?25l")
+}
 
-	// render fruit
-	s.matrix[fruit.x][fruit.y] = rune('@')
+func (s *Screen) ShowCursor() {
+	fmt.Fprint(s.writer, "\033[?25h")
+}
 
-	// render snake
-	s.matrix[node.x][node.y] = rune(node.pointing)
-	node.render = rune(node.pointing)
-	node = node.next
-	for node != nil && node.validated {
-		var cell rune
-		if node.next != nil {
-			if node.pointing == node.next.pointing {
-				if node.pointing == UP || node.pointing == DOWN {
-					cell = VERTICAL
-				} else {
-					cell = HORIZONTAL
-				}
-			} else if node.pointing == UP {
-				if node.next.pointing == LEFT {
-					cell = BOTTOM_LEFT
-				} else {
-					cell = BOTTOM_RIGHT
-				}
-			} else if node.pointing == DOWN {
-				if node.next.pointing == LEFT {
-					cell = TOP_LEFT
-				} else {
-					cell = TOP_RIGHT
-				}
-			} else if node.pointing == LEFT {
-				if node.next.pointing == UP {
-					cell = TOP_RIGHT
-				} else {
-					cell = BOTTOM_RIGHT
-				}
-			} else if node.pointing == RIGHT {
-				if node.next.pointing == UP {
-					cell = TOP_LEFT
-				} else {
-					cell = BOTTOM_LEFT
-				}
-			}
-			s.matrix[node.x][node.y] = cell
-		} else {
-			if node.pointing == UP || node.pointing == DOWN {
-				cell = VERTICAL
-			} else {
-				cell = HORIZONTAL
-			}
-		}
+func (s *Screen) GameOver() {
+	s.writer.Write([]byte(GAME_OVER))
+}
 
-		x := node.x
-		y := node.y
-
-		if x < 1 || x >= s.rows-1 || y < 1 || y >= s.cols-1 {
-			continue
-		}
-
-		s.matrix[x][y] = cell
-		node.render = cell
-		node = node.next
-	}
+func (s *Screen) PrintLogo() {
+	s.writer.Write([]byte(LOGO))
 }
 
 func (s *Screen) print(row, col int, r rune) {
@@ -376,53 +298,4 @@ func (s *Screen) print(row, col int, r rune) {
 
 func (s *Screen) printBold(row, col int, r string) {
 	fmt.Fprintf(s.writer, "\033[%d;%dH\033[1m%s\033[0m", row+1, col+1, r)
-}
-
-func (s *Screen) hideCursor() {
-	fmt.Fprint(s.writer, "\033[?25l")
-}
-
-func (s *Screen) showCursor() {
-	fmt.Fprint(s.writer, "\033[?25h")
-}
-
-func (s *Screen) GameOver() {
-	gameOver := `
-	     $$$$$$\   $$$$$$\  $$\      $$\ $$$$$$$$\
-	    $$  __$$\ $$  __$$\ $$$\    $$$ |$$  _____|
-	    $$ /  \__|$$ /  $$ |$$$$\  $$$$ |$$ |
-	    $$ |$$$$\ $$$$$$$$ |$$\$$\$$ $$ |$$$$$\
-	    $$ |\_$$ |$$  __$$ |$$ \$$$  $$ |$$  __|
-	    $$ |  $$ |$$ |  $$ |$$ |\$  /$$ |$$ |
-	    \$$$$$$  |$$ |  $$ |$$ | \_/ $$ |$$$$$$$$\
-	     \______/ \__|  \__|\__|     \__|\________|
-
-	     $$$$$$\  $$\    $$\ $$$$$$$$\ $$$$$$$\
-	    $$  __$$\ $$ |   $$ |$$  _____|$$  __$$\
-	    $$ /  $$ |$$ |   $$ |$$ |      $$ |  $$ |
-	    $$ |  $$ |\$$\  $$  |$$$$$\    $$$$$$$  |
-	    $$ |  $$ | \$$\$$  / $$  __|   $$  __$$<
-	    $$ |  $$ |  \$$$  /  $$ |      $$ |  $$ |
-	     $$$$$$  |   \$  /   $$$$$$$$\ $$ |  $$ |
-	     \______/     \_/    \________|\__|  \__|
-	`
-
-	s.writer.Write([]byte(gameOver))
-}
-
-func (s *Screen) printLogo() {
-	logo := `
-                                          $$\                 
-                                          $$ |                
-   $$$$$$\   $$$$$$$\ $$$$$$$\   $$$$$$\  $$ |  $$\  $$$$$$\  
-  $$  __$$\ $$  _____|$$  __$$\  \____$$\ $$ | $$  |$$  __$$\ 
-  $$ /  $$ |\$$$$$$\  $$ |  $$ | $$$$$$$ |$$$$$$  / $$$$$$$$ |
-  $$ |  $$ | \____$$\ $$ |  $$ |$$  __$$ |$$  _$$<  $$   ____|
-  \$$$$$$$ |$$$$$$$  |$$ |  $$ |\$$$$$$$ |$$ | \$$\ \$$$$$$$\ 
-   \____$$ |\_______/ \__|  \__| \_______|\__|  \__| \_______|
-  $$\   $$ |                                                  
-  \$$$$$$  |                                                  
-   \______/
-  `
-	s.writer.Write([]byte(logo))
 }

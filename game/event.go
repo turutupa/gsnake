@@ -24,7 +24,7 @@ func NewEventBus(state *State, eventPoller events.EventPoller) *EventBus {
 	return &EventBus{state, eventPoller, make(map[AppState]func(rune))}
 }
 
-func (e *EventBus) subscribe(state AppState, strategy func(rune)) error {
+func (e *EventBus) Subscribe(state AppState, strategy func(rune)) error {
 	if _, exists := e.strategies[state]; exists {
 		return errors.New("Strategy already exists for state " + string(state))
 	}
@@ -39,8 +39,8 @@ func (eb *EventBus) Run() {
 			return
 		}
 		e := rune(event)
-		if strategy, exists := eb.strategies[eb.state.get()]; !exists {
-			log.Error("Event Bus", errors.New("No active strategy for state "+string(eb.state.get())))
+		if strategy, exists := eb.strategies[eb.state.Get()]; !exists {
+			log.Error("Event Bus", errors.New("No active strategy for state "+string(eb.state.Get())))
 		} else {
 			strategy(e)
 		}
@@ -49,6 +49,22 @@ func (eb *EventBus) Run() {
 
 func (eb *EventBus) Stop() {
 	eb.eventPoller.Close()
+}
+
+func HandleUserInputForm(str string, event rune) (string, bool) {
+	if isBackspaceOrDelete(event) {
+		if len(str) > 0 {
+			str = str[:len(str)-1]
+		}
+	}
+	if isUserAcceptedChar(event) {
+		if len(str) < MAX_PLAYER_NAME_LEN {
+			str = str + string(event)
+		}
+	} else if isEnterKey(event) {
+		return str, true
+	}
+	return str, false
 }
 
 func isBackspaceOrDelete(r rune) bool {

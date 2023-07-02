@@ -22,6 +22,7 @@ var SSH_MENU_OPTIONS = []string{SINGLE_PLAYER, MULTI_PLAYER}
 
 type Menu struct {
 	state              *State
+	board              *Board
 	screen             *Screen
 	selectedMenuOption int
 	keypressCh         chan bool
@@ -29,32 +30,34 @@ type Menu struct {
 
 func newMenu(
 	state *State,
+	board *Board,
 	screen *Screen,
 	selectedMenuOption int,
 ) *Menu {
 	return &Menu{
 		state:              state,
+		board:              board,
 		screen:             screen,
 		selectedMenuOption: selectedMenuOption,
 		keypressCh:         make(chan bool),
 	}
 }
 
-func NewLocalMenu(state *State, screen *Screen) *Menu {
-	return newMenu(state, screen, 1) // 1 defaults to NORMAL SPEED
+func NewLocalMenu(state *State, board *Board, screen *Screen) *Menu {
+	return newMenu(state, board, screen, 1) // 1 defaults to NORMAL SPEED
 }
 
-func NewOnlineMenu(state *State, screen *Screen) *Menu {
-	return newMenu(state, screen, 0) // 0 defaults to SINGLE PLAYER
+func NewOnlineMenu(state *State, board *Board, screen *Screen) *Menu {
+	return newMenu(state, board, screen, 0) // 0 defaults to SINGLE PLAYER
 }
 
 func (m *Menu) Run() {
-	m.screen.clear()
-	m.screen.renderMainMenu(m.selectedMenuOption)
+	m.screen.Clear()
+	m.screen.RenderMainMenu(m.board, m.selectedMenuOption)
 	<-m.keypressCh
 }
 
-func (m *Menu) strategy(event rune) {
+func (m *Menu) Strategy(event rune) {
 	if isUp(event) {
 		m.selectedMenuOption = int(math.Max(float64(0), float64(m.selectedMenuOption-1)))
 	} else if isDown(event) {
@@ -62,22 +65,22 @@ func (m *Menu) strategy(event rune) {
 	} else if isEnterKey(event) {
 		selectedOpt := MENU_OPTIONS[m.selectedMenuOption]
 		if selectedOpt == EXIT {
-			m.state.setState(QUIT)
+			m.state.SetState(QUIT)
 		} else {
-			game := m.state.setState(IN_GAME).setGameMode(SINGLE)
+			game := m.state.SetState(IN_GAME).SetGameMode(SINGLE)
 			switch selectedOpt {
 			case EASY:
-				game.setDifficulty(EASY)
+				game.SetDifficulty(EASY)
 			case NORMAL:
-				game.setDifficulty(NORMAL)
+				game.SetDifficulty(NORMAL)
 			case HARD:
-				game.setDifficulty(HARD)
+				game.SetDifficulty(HARD)
 			case INSANITY:
-				game.setDifficulty(INSANITY)
+				game.SetDifficulty(INSANITY)
 			}
 		}
 	} else if event == 'q' {
-		m.state.setState(QUIT)
+		m.state.SetState(QUIT)
 	}
 	m.keypressCh <- true
 }

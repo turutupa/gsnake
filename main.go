@@ -24,10 +24,6 @@ const HELP_FLAG_SHORT = "h"
 const HELP_FLAG_LONG = "help"
 const DEFAULT_PORT = 5555
 
-// game settings
-const rows = 20
-const cols = 50
-
 func main() {
 	var port int
 	var mode string
@@ -55,14 +51,14 @@ func main() {
 		sshServer := ssh.NewSshServer(port)
 		sshServer.Run(snakeApp)
 	} else {
-		screen := gsnake.NewScreen(os.Stdout, rows, cols)
+		screen := gsnake.NewScreen(os.Stdout)
 		game := gsnake.NewLocalGsnake(screen)
 		game.Run()
 	}
 }
 
 func snakeApp(writer io.Writer, eventsPoller events.EventPoller) ssh.SshApp {
-	screen := gsnake.NewScreen(writer, rows, cols)
+	screen := gsnake.NewScreen(writer)
 	return gsnake.NewMultiplayerGsnake(eventsPoller, screen)
 }
 

@@ -19,11 +19,11 @@ func NewFruit(maxX, maxY int) *Fruit {
 		x:    0,
 		y:    0,
 	}
-	fruit.new()
+	fruit.New()
 	return &fruit
 }
 
-func (f *Fruit) new() {
+func (f *Fruit) New() {
 	x_tmp := f.x
 	y_tmp := f.y
 	f.x = 0

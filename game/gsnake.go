@@ -10,19 +10,20 @@ type Gsnake struct {
 	screen      *Screen
 	leaderboard *Leaderboard
 	menu        *Menu
-	game        *Game
+	game        *SoloGame
 }
 
 func newGsnake(
 	state *State,
 	eventBus *EventBus,
+	board *Board,
 	screen *Screen,
 	leaderboard *Leaderboard,
 	menu *Menu,
-	game *Game,
+	game *SoloGame,
 ) *Gsnake {
-	eventBus.subscribe(MAIN_MENU, menu.strategy)
-	eventBus.subscribe(IN_GAME, game.strategy)
+	eventBus.Subscribe(MAIN_MENU, menu.Strategy)
+	eventBus.Subscribe(IN_GAME, game.Strategy)
 	return &Gsnake{
 		state:       state,
 		eventBus:    eventBus,
@@ -33,19 +34,21 @@ func newGsnake(
 	}
 }
 
-// injection wrapper to create multiplayer game modes
-func NewMultiplayerGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnake {
-	rows := screen.rows
-	cols := screen.cols
+// injection wrapper to create single player game modes
+func NewLocalGsnake(screen *Screen) *Gsnake {
+	const rows = 20
+	const cols = 50
 	state := NewState()
-	eventBus := NewEventBus(state, eventPoller)
+	board := NewBoard(rows, cols)
+	eventBus := NewEventBus(state, NewTerm())
 	leaderboard := NewLeaderboard()
-	menu := NewOnlineMenu(state, screen)
-	game := NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen))
+	menu := NewLocalMenu(state, board, screen)
+	game := NewGame(board, screen, leaderboard, NewFruit(rows, cols), NewSnake(board))
 
 	return newGsnake(
 		state,
 		eventBus,
+		board,
 		screen,
 		leaderboard,
 		menu,
@@ -53,19 +56,21 @@ func NewMultiplayerGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnak
 	)
 }
 
-// injection wrapper to create single player game modes
-func NewLocalGsnake(screen *Screen) *Gsnake {
-	rows := screen.rows
-	cols := screen.cols
+// injection wrapper to create multiplayer game modes
+func NewMultiplayerGsnake(eventPoller events.EventPoller, screen *Screen) *Gsnake {
+	rows := 30
+	cols := 80
+	board := NewBoard(rows, cols)
 	state := NewState()
-	eventBus := NewEventBus(state, NewTerm())
+	eventBus := NewEventBus(state, eventPoller)
 	leaderboard := NewLeaderboard()
-	menu := NewLocalMenu(state, screen)
-	game := NewGame(screen, leaderboard, NewFruit(rows, cols), NewSnake(screen))
+	menu := NewOnlineMenu(state, board, screen)
+	game := NewGame(board, screen, leaderboard, NewFruit(rows, cols), NewSnake(board))
 
 	return newGsnake(
 		state,
 		eventBus,
+		board,
 		screen,
 		leaderboard,
 		menu,
@@ -74,25 +79,29 @@ func NewLocalGsnake(screen *Screen) *Gsnake {
 }
 
 func (g *Gsnake) Run() {
+	g.screen.HideCursor()
 	go g.eventBus.Run()
-	for g.state.get() != QUIT {
-		for g.state.get() == MAIN_MENU {
+	for g.state.Get() != QUIT {
+		for g.state.Get() == MAIN_MENU {
 			g.menu.Run()
 		}
-		if g.state.get() == IN_GAME {
+		if g.state.Get() == IN_GAME {
 			switch g.state.gameMode {
 			case SINGLE:
-				g.screen.clear()
-				g.game.setDifficulty(g.state.difficulty)
+				g.screen.Clear()
+				g.game.SetDifficulty(g.state.difficulty)
 				g.game.Run()
+				g.game.Leaderboard()
 				g.game.Restart()
-				g.state.setState(MAIN_MENU)
+				g.state.SetState(MAIN_MENU)
 			case MULTI:
-				g.screen.clear()
-				g.game.setDifficulty(g.state.difficulty)
+				g.screen.Clear()
+				// g.screen.promptPlayerName()
+				g.game.SetDifficulty(g.state.difficulty)
 				g.game.Run()
+				g.game.Leaderboard()
 				g.game.Restart()
-				g.state.setState(MAIN_MENU)
+				g.state.SetState(MAIN_MENU)
 			}
 		}
 	}
@@ -102,6 +111,6 @@ func (g *Gsnake) Run() {
 func (g *Gsnake) Stop() {
 	g.game.Stop()
 	g.eventBus.Stop()
-	g.screen.clear()
-	g.screen.showCursor()
+	g.screen.Clear()
+	g.screen.ShowCursor()
 }

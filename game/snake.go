@@ -2,11 +2,51 @@ package gsnake
 
 type Pointing rune
 
+// const (
+// 	UP    Pointing = '▲'
+// 	DOWN  Pointing = '▼'
+// 	RIGHT Pointing = '►'
+// 	LEFT  Pointing = '◄'
+// )
+
+// Set 1
 const (
-	UP    Pointing = '▲'
-	DOWN           = '▼'
-	RIGHT          = '►'
-	LEFT           = '◄'
+	UP    Pointing = '△'
+	DOWN  Pointing = '▽'
+	RIGHT Pointing = '▷'
+	LEFT  Pointing = '◁'
+)
+
+// Set 2
+const (
+	UP2    Pointing = '⇧'
+	DOWN2  Pointing = '⇩'
+	RIGHT2 Pointing = '⇨'
+	LEFT2  Pointing = '⇦'
+)
+
+// Set 3
+const (
+	UP3    Pointing = '⬆'
+	DOWN3  Pointing = '⬇'
+	RIGHT3 Pointing = '➡'
+	LEFT3  Pointing = '⬅'
+)
+
+// Set 4
+const (
+	UP4    Pointing = '⇡'
+	DOWN4  Pointing = '⇣'
+	RIGHT4 Pointing = '⇢'
+	LEFT4  Pointing = '⇠'
+)
+
+// Set 5
+const (
+	UP5    Pointing = '⮝'
+	DOWN5  Pointing = '⮟'
+	RIGHT5 Pointing = '⮞'
+	LEFT5  Pointing = '⮜'
 )
 
 type Snake struct {
@@ -25,16 +65,11 @@ type Node struct {
 	validated   bool
 }
 
-type Direction struct {
-	X int
-	Y int
-}
-
-func NewSnake(screen *Screen) *Snake {
+func NewSnake(board *Board) *Snake {
 	snake := &Snake{}
 	snake.head = &Node{
-		x:           screen.rows / 2,
-		y:           screen.cols / 5,
+		x:           board.rows / 2,
+		y:           board.cols / 5,
 		pointing:    RIGHT,
 		tmpPointing: RIGHT,
 		prev:        nil,
@@ -60,21 +95,21 @@ func NewSnake(screen *Screen) *Snake {
 	return snake
 }
 
-func (s *Snake) restart(screen *Screen) {
-	newSnake := NewSnake(screen)
+func (s *Snake) Restart(board *Board) {
+	newSnake := NewSnake(board)
 	s.head = newSnake.head
 	s.tail = newSnake.tail
 }
 
-func (s *Snake) pointsTo() Pointing {
+func (s *Snake) PointsTo() Pointing {
 	return s.head.pointing
 }
 
-func (s *Snake) point(point Pointing) {
+func (s *Snake) Point(point Pointing) {
 	s.head.tmpPointing = point
 }
 
-func (s *Snake) move() {
+func (s *Snake) Move() {
 	node := s.head
 	x_prev := node.x
 	y_prev := node.y
@@ -106,6 +141,12 @@ func (s *Snake) move() {
 			break
 		}
 		node = node.next
+	}
+}
+
+func (s *Snake) Grow(size int) {
+	for i := 0; i < size; i++ {
+		s.append()
 	}
 }
 
