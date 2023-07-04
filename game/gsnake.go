@@ -10,7 +10,7 @@ type Gsnake struct {
 	screen      *Screen
 	leaderboard *Leaderboard
 	menu        *Menu
-	game        *SoloGame
+	game        Game
 }
 
 func newGsnake(
@@ -96,8 +96,8 @@ func (g *Gsnake) Run() {
 				g.state.SetState(MAIN_MENU)
 			case MULTI:
 				g.screen.Clear()
-				// g.screen.promptPlayerName()
-				g.game.SetDifficulty(g.state.difficulty)
+				g.screen.PromptPlayerName()
+				g.game.SetDifficulty(g.state.difficulty) // this has to go
 				g.game.Run()
 				g.game.Leaderboard()
 				g.game.Restart()

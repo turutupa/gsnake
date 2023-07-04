@@ -32,6 +32,10 @@ func (g *MultiGame) Countdown() {
 
 func (g *MultiGame) Run() {}
 
+func (g *MultiGame) Stop() {}
+
+func (g *MultiGame) Restart() {}
+
 func (g *MultiGame) InterRound() {}
 
 func (g *MultiGame) Leaderboard() {}

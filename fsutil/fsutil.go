@@ -63,6 +63,7 @@ func AppendToFile(filename string, data string) error {
 	lock := getLockForFile(filename)
 	lock.Lock()
 	defer lock.Unlock()
+
 	if configDir, ok := getDir(); !ok {
 		return errors.New("Something went wrong retrieving user config dir")
 	} else {

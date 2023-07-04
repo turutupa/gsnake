@@ -57,10 +57,10 @@ To be updated.
 - [x] ~~Finish README.md including how to install on machine~~
 - [ ] Inifite mode? Where you can only die if snake hits itself
 - [ ] Refactor game so that grid is double columned (this way width and height will be roughly the same)
-- [ ] Improve leaderboard 
+- [x] ~~Improve leaderboard~~
     - [x] ~~Add some borders~~
-    - [ ] Add the option to input username
-    - [ ] See top scores by difficulty/mode
+    - [x] ~~Add the option to input username~~
+    - [x] ~~See top scores by difficulty/mode~~
 - [x] ~~Add main menu~~
     - [x] ~~Be able to select difficulty~~
 - [ ] Super fruit! Add a super fruit (maybe every 5 fruit pieces?) that will appear for an X amount of time
@@ -68,7 +68,7 @@ To be updated.
     2. otherwise it simply disappears
 - [x] ~~Completely new project would involve to convert this to a SSH application~~
 - [ ] Versus mode! Let players fight!
-    - [ ] Create rooms/lobbies
+    - [x] Create rooms/lobbies
     - [ ] Create new game logic for multiplayer. This could also work for local mode (1 keyboard)
     - [ ] Power ups? // not in the near future
 
