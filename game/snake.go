@@ -2,20 +2,20 @@ package gsnake
 
 type Pointing rune
 
-// const (
-// 	UP    Pointing = '▲'
-// 	DOWN  Pointing = '▼'
-// 	RIGHT Pointing = '►'
-// 	LEFT  Pointing = '◄'
-// )
-
-// Set 1
 const (
-	UP    Pointing = '△'
-	DOWN  Pointing = '▽'
-	RIGHT Pointing = '▷'
-	LEFT  Pointing = '◁'
+	UP    Pointing = '▲'
+	DOWN  Pointing = '▼'
+	RIGHT Pointing = '►'
+	LEFT  Pointing = '◄'
 )
+
+// // Set 1
+// const (
+// 	UP    Pointing = '△'
+// 	DOWN  Pointing = '▽'
+// 	RIGHT Pointing = '▷'
+// 	LEFT  Pointing = '◁'
+// )
 
 // Set 2
 const (

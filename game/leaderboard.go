@@ -28,7 +28,7 @@ func NewLeaderboard() *Leaderboard {
 		if scores, ok := l.getPersistedLeaderboard(filename); ok {
 			l.leaderboard[diff] = scores
 		} else {
-			log.Error("Something went wrong retrieving local leaderboard", nil)
+			log.Error("Something went wrong retrieving local leaderboard")
 		}
 	}
 	return l

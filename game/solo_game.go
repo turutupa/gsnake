@@ -37,7 +37,7 @@ type SoloGame struct {
 	playerNameSubmitted chan bool
 }
 
-func NewGame(
+func NewSoloGame(
 	board *Board,
 	screen *Screen,
 	leaderboard *Leaderboard,
@@ -67,7 +67,7 @@ func (g *SoloGame) Run() {
 	g.screen.RenderScore(g.board, 0)
 	for g.state == PLAYING {
 		frameStart = uint32(time.Now().UnixNano() / int64(time.Millisecond)) // Current time in milliseconds
-		g.screen.Remove(g.snake.head, g.snake.tail)
+		g.screen.Remove(g.board, g.snake.head)
 		g.snake.Move()
 		if g.ateFruit() {
 			switch g.speed {
@@ -86,7 +86,6 @@ func (g *SoloGame) Run() {
 			}
 			g.fruit.New()
 		}
-
 		// update internal board
 		g.board.UpdateFruit(g.fruit)
 		g.board.UpdateLeaderboard(g.player.score)
@@ -94,8 +93,8 @@ func (g *SoloGame) Run() {
 
 		// render board
 		g.screen.RenderScore(g.board, g.player.score)
-		g.screen.RenderFruit(g.fruit)
-		g.screen.RenderSnake(g.snake.head, g.snake.tail)
+		g.screen.RenderFruit(g.board, g.fruit)
+		g.screen.RenderSnake(g.board, g.snake.head)
 		if g.board.Intersects(g.snake) {
 			time.Sleep(1 * time.Second)
 			return

@@ -6,4 +6,5 @@ type Game interface {
 	Restart()
 	SetDifficulty(string)
 	Stop()
+	Strategy(event rune)
 }

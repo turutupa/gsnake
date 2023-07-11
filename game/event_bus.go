@@ -25,9 +25,6 @@ func NewEventBus(state *State, eventPoller events.EventPoller) *EventBus {
 }
 
 func (e *EventBus) Subscribe(state AppState, strategy func(rune)) error {
-	if _, exists := e.strategies[state]; exists {
-		return errors.New("Strategy already exists for state " + string(state))
-	}
 	e.strategies[state] = strategy
 	return nil
 }

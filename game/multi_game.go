@@ -13,7 +13,7 @@ func (g *MultiGame) Setup() {
 	g.screen.RenderBoard(g.board)
 	for {
 		for _, snake := range g.snakes {
-			g.screen.Remove(snake.head, snake.tail)
+			g.screen.Remove(g.board, snake.head)
 			snake.Move()
 			g.board.UpdateSnake(snake.head)
 		}
@@ -23,7 +23,7 @@ func (g *MultiGame) Setup() {
 func (g *MultiGame) Countdown() {
 	for i := 1; i <= 5; i++ {
 		for _, snake := range g.snakes {
-			g.screen.RenderSnake(snake.head, snake.tail)
+			g.screen.RenderSnake(g.board, snake.head)
 		}
 		g.screen.RenderCountdown(i)
 		time.Sleep(1 * time.Second)

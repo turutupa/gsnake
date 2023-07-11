@@ -19,10 +19,12 @@ const MAX_HIGH_SCORE_DIGITS = 4
 type Screen struct {
 	writer        io.Writer
 	isFirstRender bool
+	termRows      int
+	termCols      int
 }
 
 func NewScreen(writer io.Writer) *Screen {
-	return &Screen{writer, true}
+	return &Screen{writer, true, 30, 50}
 }
 
 func (s *Screen) Restart() {
@@ -33,13 +35,17 @@ func (s *Screen) Clear() {
 	s.writer.Write([]byte("\033[H\033[2J"))
 }
 
+func (s *Screen) SetSize(rows int, cols int) {
+	s.termRows = rows
+	s.termCols = cols
+}
+
 func (s *Screen) PromptPlayerName() {}
 
-func (s *Screen) RenderMainMenu(board *Board, selected int) {
-	s.RenderBoard(board)
+func (s *Screen) RenderMainMenu(termSize TermSize, selected int) {
 	title := "SELECT GAME MODE"
-	startLine := board.cols/2 - len(title)/2 - 1
-	row := board.rows / 5
+	startLine := termSize.cols/2 - len(title)/2 - 1
+	row := termSize.rows / 3
 	s.printBold(row, startLine, title)
 	row += 2
 	optionIndex := 0
@@ -70,19 +76,15 @@ func (s *Screen) RenderMainMenu(board *Board, selected int) {
 }
 
 func (s *Screen) RenderBoard(board *Board) {
+	offsetRow, offsetCol := s.offsets(board)
 	for i := 0; i < board.cols; i++ {
-		s.print(0, i, board.matrix[0][i])
-		s.print(board.rows-1, i, board.matrix[board.rows-1][i])
+		s.print(offsetRow+0, offsetCol+i, board.matrix[0][i])
+		s.print(offsetRow+board.rows-1, offsetCol+i, board.matrix[board.rows-1][i])
 	}
 	for i := 0; i < board.rows; i++ {
-		s.print(i, 0, board.matrix[i][0])
-		s.print(i, board.cols-1, board.matrix[i][board.cols-1])
+		s.print(offsetRow+i, offsetCol+0, board.matrix[i][0])
+		s.print(offsetRow+i, offsetCol+board.cols-1, board.matrix[i][board.cols-1])
 	}
-}
-
-func (s *Screen) Remove(head *Node, tail *Node) {
-	s.print(head.x, head.y, ' ')
-	s.print(tail.x, tail.y, ' ')
 }
 
 func (s *Screen) RenderCountdown(n int) {
@@ -100,8 +102,15 @@ func (s *Screen) RenderCountdown(n int) {
 	}
 }
 
-func (s *Screen) RenderFruit(fruit *Fruit) {
-	s.print(fruit.x, fruit.y, '@')
+func (s *Screen) RenderWarning(rows, cols int, txt string) {
+	row := rows / 2
+	col := (cols / 2) - len(txt)/2
+	s.printBold(row, col, txt)
+}
+
+func (s *Screen) RenderFruit(board *Board, fruit *Fruit) {
+	offsetRow, offsetCol := s.offsets(board)
+	s.print(offsetRow+fruit.x, offsetCol+fruit.y, '@')
 }
 
 // used in solo game
@@ -110,6 +119,7 @@ func (s *Screen) RenderScore(board *Board, score int) {
 	// we only want to re-render the score so
 	// calcualte where the score is positioned,
 	// which is between the second set of brackets
+	offsetRow, offsetCol := s.offsets(board)
 	bracket_counter := 0
 	for j := 0; j < board.cols; j++ {
 		if board.matrix[0][j] == '[' || board.matrix[0][j] == ']' {
@@ -117,7 +127,7 @@ func (s *Screen) RenderScore(board *Board, score int) {
 			continue
 		}
 		if bracket_counter == 3 {
-			s.print(0, j, board.matrix[0][j])
+			s.print(offsetRow, offsetCol+j, board.matrix[0][j])
 		}
 		if bracket_counter >= 4 {
 			break
@@ -125,36 +135,33 @@ func (s *Screen) RenderScore(board *Board, score int) {
 	}
 }
 
-func (s *Screen) RenderSnake(head *Node, tail *Node) {
-	// - render snake -
-	// the first time we render the entire snake
-	// the rest of the time only the parts of the snake
-	// that requires re-rendering
-	if s.isFirstRender {
-		node := head
-		for node != nil && node.validated {
-			s.print(node.x, node.y, node.render)
-			node = node.next
-		}
-		s.isFirstRender = false
-	} else {
-		// - render snake -
-		s.print(head.x, head.y, head.render)
-		s.print(head.next.x, head.next.y, head.next.render)
-		node := tail
-		for !node.validated {
-			node = node.prev
-		}
-		s.print(node.x, node.y, node.render)
+func (s *Screen) Remove(board *Board, head *Node) {
+	s.print(s.offsetRow(board)+head.x, s.offsetCol(board)+head.y, ' ')
+	last := head
+	for head != nil && head.validated {
+		last = head
+		head = head.next
+	}
+	s.print(s.offsetRow(board)+last.x, s.offsetCol(board)+last.y, ' ')
+}
+
+func (s *Screen) RenderSnake(board *Board, head *Node) {
+	offsetRow, offsetCol := s.offsets(board)
+	// room for optimization
+	s.print(offsetRow+head.x, offsetCol+head.y, head.render)
+	node := head.next
+	for node != nil && node.validated {
+		s.print(offsetRow+node.x, offsetCol+node.y, node.render)
+		node = node.next
 	}
 }
 
-func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Player, newHighScore *Player) {
+func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Player, player *Player) {
 	title := "| " + "TOP SCORES" + " |"
 	// how many high scores to render, if there is a new one,
 	// that one is going to be the fifth top score
 	var leaderboarSize int
-	if newHighScore != nil {
+	if player != nil {
 		leaderboarSize = 4
 	} else {
 		leaderboarSize = 5
@@ -169,17 +176,18 @@ func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Pl
 	marginLeft := len(title)/2 - 1
 	startLine := board.cols/2 - marginLeft
 	row := board.rows/3 + 1
+	offsetRow, offsetCol := s.offsets(board)
 
 	// print top border
 	for i := 0; i < len(title); i++ {
 		position := startLine + i
 		switch i {
 		case 0:
-			s.print(row, position, TOP_LEFT)
+			s.print(offsetRow+row, offsetCol+position, TOP_LEFT)
 		case len(title) - 1:
-			s.print(row, position, TOP_RIGHT)
+			s.print(offsetRow+row, offsetCol+position, TOP_RIGHT)
 		default:
-			s.print(row, position, HORIZONTAL)
+			s.print(offsetRow+row, offsetCol+position, HORIZONTAL)
 
 		}
 	}
@@ -187,7 +195,7 @@ func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Pl
 
 	// print title
 	for i, r := range title {
-		s.print(row, startLine+i, r)
+		s.print(offsetRow+row, offsetCol+startLine+i, r)
 	}
 	row++
 
@@ -195,14 +203,14 @@ func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Pl
 	padding := strings.Repeat(" ", (len(title)-len(difficulty)-2)/2)
 	diff := "|" + padding + difficulty + padding + "|"
 	for i, r := range diff {
-		s.print(row, startLine+i, r)
+		s.print(offsetRow+row, offsetCol+startLine+i, r)
 	}
 	row++
 
 	// print empty line
 	emptyLine := "|" + strings.Repeat(" ", len(title)-2) + "|"
 	for i, r := range emptyLine {
-		s.print(row, startLine+i, r)
+		s.print(offsetRow+row, offsetCol+startLine+i, r)
 	}
 	row++
 
@@ -214,10 +222,10 @@ func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Pl
 		var scoreFmt string
 		var sc int
 		var pl string
-		isHighScore := newHighScore != nil && !renderedNewHighScore && newHighScore.score > score.score
+		isHighScore := player != nil && !renderedNewHighScore && player.score > score.score
 		if isHighScore && !renderedNewHighScore {
-			sc = newHighScore.score
-			pl = newHighScore.name
+			sc = player.score
+			pl = player.name
 			renderedNewHighScore = true
 		} else {
 			sc = score.score
@@ -247,9 +255,9 @@ func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Pl
 		for j, r := range scoreFmt {
 			position := startLine + j
 			if j == 0 || j == len(title)-1 {
-				s.print(row, position, '|')
+				s.print(offsetRow+row, offsetCol+position, '|')
 			} else {
-				s.print(row, position, r)
+				s.print(offsetRow+row, offsetCol+position, r)
 			}
 		}
 		row++
@@ -259,21 +267,21 @@ func (s *Screen) RenderLeaderboard(board *Board, difficulty string, scores []*Pl
 	for i := range title {
 		position := startLine + i
 		if i == 0 {
-			s.print(row, position, BOTTOM_LEFT)
+			s.print(offsetRow+row, offsetCol+position, BOTTOM_LEFT)
 		} else if i == len(title)-1 {
-			s.print(row, position, BOTTOM_RIGHT)
+			s.print(offsetRow+row, offsetCol+position, BOTTOM_RIGHT)
 		} else {
-			s.print(row, position, HORIZONTAL)
+			s.print(offsetRow+row, offsetCol+position, HORIZONTAL)
 		}
 	}
 	row = row + 2
 	var msg string
-	if newHighScore != nil {
+	if player != nil {
 		msg = " PRESS ENTER TO SUBMIT NEW HIGH SCORE "
 	} else {
 		msg = " PRESS ENTER TO CONTINUE "
 	}
-	s.printBold(row, board.cols/2-len(msg)/2, msg)
+	s.printBold(offsetRow+row, offsetCol+board.cols/2-len(msg)/2, msg)
 }
 
 func (s *Screen) HideCursor() {
@@ -298,4 +306,16 @@ func (s *Screen) print(row, col int, r rune) {
 
 func (s *Screen) printBold(row, col int, r string) {
 	fmt.Fprintf(s.writer, "\033[%d;%dH\033[1m%s\033[0m", row+1, col+1, r)
+}
+
+func (s *Screen) offsets(board *Board) (int, int) {
+	return s.offsetRow(board), s.offsetCol(board)
+}
+
+func (s *Screen) offsetRow(board *Board) int {
+	return (s.termRows - board.rows) / 2
+}
+
+func (s *Screen) offsetCol(board *Board) int {
+	return (s.termCols - board.cols) / 2
 }

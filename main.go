@@ -52,14 +52,14 @@ func main() {
 		sshServer.Run(snakeApp)
 	} else {
 		screen := gsnake.NewScreen(os.Stdout)
-		game := gsnake.NewLocalGsnake(screen)
+		game := gsnake.NewOfflineGsnake(screen)
 		game.Run()
 	}
 }
 
 func snakeApp(writer io.Writer, eventsPoller events.EventPoller) ssh.SshApp {
 	screen := gsnake.NewScreen(writer)
-	return gsnake.NewMultiplayerGsnake(eventsPoller, screen)
+	return gsnake.NewOnlineGsnake(eventsPoller, screen)
 }
 
 func displayHelp() {

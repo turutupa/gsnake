@@ -15,19 +15,24 @@ const (
 	QUIT      AppState = "QUIT"
 )
 
+type TermSize struct {
+	rows int
+	cols int
+}
+
 type State struct {
-	state       AppState
-	gameMode    GameMode
-	difficulty  string
-	subscribers []func(AppState)
+	state      AppState
+	gameMode   GameMode
+	difficulty string
+	termSize   *TermSize
 }
 
 func NewState() *State {
 	return &State{
-		state:       MAIN_MENU, // defaults to MAIN MENU
-		gameMode:    SINGLE,    // defaults to single player
-		difficulty:  NORMAL,    // defaults to NORMAL
-		subscribers: []func(AppState){},
+		state:      MAIN_MENU, // defaults to MAIN MENU
+		gameMode:   SINGLE,    // defaults to single player
+		difficulty: NORMAL,    // defaults to NORMAL
+		termSize:   &TermSize{0, 0},
 	}
 }
 

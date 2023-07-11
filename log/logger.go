@@ -23,7 +23,8 @@ func EnableStorage() {
 	enableStorage = true
 }
 
-func Info(message string) {
+func Info(format string, a ...interface{}) {
+	message := fmt.Sprintf(format, a...)
 	printLog("INFO", colorCyan, message)
 }
 
@@ -31,9 +32,9 @@ func Warn(message string) {
 	printLog("WARN", colorYellow, message)
 }
 
-func Error(message string, error error) {
-	if error != nil {
-		printLog("ERROR", colorRed, message+colorRed+" ERROR_MSG "+colorReset+error.Error())
+func Error(message string, a ...error) {
+	if len(a) > 0 && a[0] != nil {
+		printLog("ERROR", colorRed, message+colorRed+" ERROR_MSG "+colorReset+a[0].Error())
 	} else {
 		printLog("ERROR", colorRed, message)
 	}
