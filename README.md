@@ -14,7 +14,7 @@ Table of Contents
 - [Donations](#donations)
 
 ## Play Now!
-Currently running on `turutupa.com`. You may play gsnake using 
+Currently running on `turutupa.com`. Join now!
 ```bash
 $ ssh turutupa.com -p 5555
 ```
