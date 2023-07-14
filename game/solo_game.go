@@ -114,7 +114,6 @@ func (g *SoloGame) Run() {
 
 func (g *SoloGame) Leaderboard() {
 	g.screen.Clear()
-	g.screen.PrintLogo()
 	isHighScore := g.leaderboard.IsHighScore(g.difficulty, g.player.score)
 	scores := g.leaderboard.Get(g.difficulty)
 	if isHighScore {

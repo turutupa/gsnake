@@ -7,7 +7,7 @@ import (
 	"turutupa/gsnake/log"
 )
 
-const MAX_ROOM_SIZE int = 2
+const MAX_ROOM_SIZE int = 4
 
 type Room struct {
 	id                 string
@@ -44,7 +44,7 @@ func (r *Room) Run() {
 	for waitingForPlayers {
 		select {
 		case <-r.notifyPlayerJoined:
-			r.game.StartLayout()
+			r.game.DefaultLayout()
 			info := fmt.Sprintf("New player joined. Players in room %s:", r.id)
 			for _, player := range r.players {
 				info = info + "\n\t* " + player.name
@@ -63,9 +63,9 @@ func (r *Room) Run() {
 	log.Info("Starting game for room %s", r.id)
 	r.started = true
 	for {
-		r.game.StartLayout()
+		r.game.DefaultLayout()
 		r.game.Countdown("Game starts in...")
-		r.game.StartLayout()
+		r.game.DefaultLayout()
 		r.game.Run()
 		if len(r.players) == 1 {
 			for _, p := range r.players {

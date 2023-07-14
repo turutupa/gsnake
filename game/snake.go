@@ -106,6 +106,16 @@ func (s *Snake) PointsTo() Pointing {
 
 func (s *Snake) Point(point Pointing) {
 	s.head.tmpPointing = point
+	switch point {
+	case UP:
+		s.head.render = rune(s.arrowRenders['u'])
+	case DOWN:
+		s.head.render = rune(s.arrowRenders['d'])
+	case LEFT:
+		s.head.render = rune(s.arrowRenders['l'])
+	case RIGHT:
+		s.head.render = rune(s.arrowRenders['r'])
+	}
 }
 
 func (s *Snake) Move() {
