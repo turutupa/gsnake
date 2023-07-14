@@ -8,7 +8,7 @@ const ROWS_SOLO = 20
 const COLS_SOLO = 50
 
 const ROWS_MULTI = 30
-const COLS_MULTI = 60
+const COLS_MULTI = 80
 
 type Gsnake struct {
 	state    *State

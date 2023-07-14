@@ -13,6 +13,7 @@ type Room struct {
 	id                 string
 	players            []*Player
 	started            bool
+	finished           bool
 	game               *MultiGame
 	lock               *sync.Mutex
 	notifyPlayerJoined chan bool
@@ -25,6 +26,7 @@ func NewRoom(game *MultiGame) *Room {
 		id:                 generateUUID(),
 		players:            []*Player{},
 		started:            false,
+		finished:           false,
 		game:               game,
 		lock:               &sync.Mutex{},
 		notifyPlayerJoined: make(chan bool),
@@ -88,6 +90,7 @@ func (r *Room) Run() {
 	for i := 0; i < len(r.players); i++ {
 		r.notifyGameEnd <- true
 	}
+	r.finished = true
 }
 
 func (r *Room) AddPlayer(player *Player) bool {
