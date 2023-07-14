@@ -2,25 +2,14 @@ package gsnake
 
 import (
 	"sync"
+	"turutupa/gsnake/log"
 )
 
-const MAX_ROOM_SIZE int = 6
-
 var lobby *Lobby
-var lock *sync.Mutex
-
-type Room struct {
-	id              string
-	board           *Board
-	screen          *Screen
-	game            *MultiGame
-	lock            *sync.Mutex
-	notifyGameStart chan bool
-}
+var lock sync.Mutex
 
 type Lobby struct {
 	rooms []*Room
-	lock  *sync.Mutex
 }
 
 func NewLobby() *Lobby {
@@ -32,54 +21,26 @@ func NewLobby() *Lobby {
 	}
 	lobby = &Lobby{
 		rooms: []*Room{},
-		lock:  &sync.Mutex{},
 	}
 	return lobby
 }
 
-func NewRoom(id string, board *Board, screen *Screen, game *MultiGame) *Room {
-	return &Room{
-		id:              id,
-		screen:          screen,
-		game:            game,
-		lock:            &sync.Mutex{},
-		notifyGameStart: make(chan bool),
-	}
-}
+func (l *Lobby) Join(player *Player) *Room {
+	lock.Lock()
+	defer lock.Unlock()
 
-func (l *Lobby) AddRoom(room *Room) {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	l.rooms = append(l.rooms, room)
-}
-
-func (r *Room) AddPlayer(player *Player) bool {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	if len(r.game.players) >= MAX_ROOM_SIZE {
-		return false
+	var room *Room
+	if len(l.rooms) == 0 || l.rooms[len(l.rooms)-1].started || len(l.rooms[len(l.rooms)-1].players) >= MAX_ROOM_SIZE {
+		board := NewBoard(ROWS_MULTI, COLS_MULTI)
+		game := NewMultiGame(board)
+		room = NewRoom(game)
+		l.rooms = append(l.rooms, room)
+		go room.Run()
+		log.Info("No rooms available - created new room: %s", room.id)
+	} else {
+		room = l.rooms[len(l.rooms)-1]
 	}
-	r.game.players = append(r.game.players, player)
-	r.game.snakes = append(r.game.snakes, NewSnake(r.board))
-	if len(r.game.players) == MAX_ROOM_SIZE { // n should be the maximum number of players allowed in a room
-		r.notifyGameStart <- true
-	}
-	return true
-}
-
-func (r *Room) Run() {
-	for {
-		r.game.Setup()
-		<-r.notifyGameStart
-		r.game.Countdown()
-		for {
-			r.game.Run()
-			if r.game.HasWinner() {
-				r.game.Leaderboard()
-				break
-			}
-			r.game.InterRound()
-		}
-	}
+	room.AddPlayer(player)
+	log.Info("Added player %s to room %s", player.name, room.id)
+	return room
 }

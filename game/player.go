@@ -1,18 +1,25 @@
 package gsnake
 
-import (
-	"encoding/hex"
-	"math/rand"
-)
+const MAX_PLAYER_NAME_LEN = 6
 
 type Player struct {
-	id    string
-	name  string
-	score int
+	id            string
+	name          string
+	score         int
+	screen        *Screen
+	snake         *Snake
+	isAlive       bool
+	keypressCh    chan bool
+	nameSubmitted chan bool
 }
 
 func NewPlayer(name string) *Player {
-	return &Player{"", name, 0}
+	return &Player{"", name, 0, nil, nil, true, make(chan bool), make(chan bool)}
+}
+
+func (p *Player) WithSnake(row int, col int) *Player {
+	p.snake = NewSnake(row, col)
+	return p
 }
 
 func (p *Player) WithScore(score int) *Player {
@@ -26,34 +33,42 @@ func (p *Player) WithUUID() *Player {
 	return p
 }
 
-func generateUUID() string {
-	uuid := make([]byte, 16)
-	rand.Read(uuid)
+func (p *Player) WithScreen(screen *Screen) *Player {
+	p.screen = screen
+	return p
+}
 
-	// Set the version (4) and variant (RFC4122) bits
-	uuid[6] = (uuid[6] & 0x0F) | 0x40
-	uuid[8] = (uuid[8] & 0x3F) | 0x80
-
-	// Convert UUID to string format
-	uuidStr := make([]byte, 36)
-	hex.Encode(uuidStr[0:8], uuid[0:4])
-	uuidStr[8] = '-'
-	hex.Encode(uuidStr[9:13], uuid[4:6])
-	uuidStr[13] = '-'
-	hex.Encode(uuidStr[14:18], uuid[6:8])
-	uuidStr[18] = '-'
-	hex.Encode(uuidStr[19:23], uuid[8:10])
-	uuidStr[23] = '-'
-	hex.Encode(uuidStr[24:], uuid[10:])
-
-	return string(uuidStr)
+func (p *Player) SetName() {
+	label := "Set player name"
+	p.screen.InputBox(label, p.name)
+	for {
+		select {
+		case <-p.keypressCh:
+			p.screen.InputBox(label, p.name)
+		case <-p.nameSubmitted:
+			close(p.keypressCh)
+			close(p.nameSubmitted)
+			return
+		}
+	}
 }
 
 // so far only used to prompt for user input
-func (p *Player) Strategy(event rune) {
-	// if len(p.name) >= MAX_PLAYER_NAME_LEN {
-	//   // don't do shit
-	// } else if isBackspaceOrDelete(){
+func (p *Player) SubmitNameStrategy(event rune) {
+	name, done := HandleUserInputForm(p.name, event)
+	if done && len(name) > 0 {
+		p.nameSubmitted <- true
+		return
+	}
+	p.name = name
+	p.keypressCh <- true
+}
 
-	// } else if isUserAcceptedChar()
+// so far only used to prompt for user input
+func (p *Player) MultiGameStrategy(event rune) {
+	if event == 'q' {
+
+		return
+	}
+	snakeStrategy(p.snake, event)
 }

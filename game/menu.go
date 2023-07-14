@@ -2,6 +2,7 @@ package gsnake
 
 // Main Menu options
 const (
+	BACK          string = "BACK"
 	EXIT          string = "EXIT"
 	LEADERBOARD   string = "LEADERBOARD"
 	EASY          string = "EASY"
@@ -13,60 +14,96 @@ const (
 )
 
 var DIFFICULTIES = []string{EASY, NORMAL, HARD, INSANITY}
-var MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, EXIT}
-var SSH_MENU_OPTIONS = []string{SINGLE_PLAYER, MULTI_PLAYER}
+var OFFLINE_MENU_OPTIONS = []string{EASY, NORMAL, HARD, INSANITY, BACK}
+var ONLINE_MENU_OPTIONS = []string{SINGLE_PLAYER, MULTI_PLAYER, EXIT}
+
+type MenuState int
+
+const (
+	SELECT_GAME_MODE   MenuState = 1
+	SINGLE_MODE        MenuState = 2
+	PROMPT_PLAYER_NAME MenuState = 3
+)
 
 type Menu struct {
-	state              *State
+	appState           *State
+	menuState          MenuState
 	screen             *Screen
 	selectedMenuOption int
 	keypressCh         chan bool
 }
 
 func newMenu(
-	state *State,
+	appState *State,
+	menuState MenuState,
 	screen *Screen,
 	selectedMenuOption int,
 ) *Menu {
 	return &Menu{
-		state:              state,
+		appState:           appState,
+		menuState:          menuState,
 		screen:             screen,
 		selectedMenuOption: selectedMenuOption,
 		keypressCh:         make(chan bool),
 	}
 }
 
-func NewLocalMenu(state *State, screen *Screen) *Menu {
-	return newMenu(state, screen, 1) // 1 defaults to NORMAL SPEED
+func NewLocalMenu(appState *State, screen *Screen) *Menu {
+	return newMenu(appState, SINGLE_MODE, screen, 1) // 1 defaults to NORMAL SPEED
 }
 
-func NewOnlineMenu(state *State, screen *Screen) *Menu {
-	return newMenu(state, screen, 0) // 0 defaults to SINGLE PLAYER
+func NewOnlineMenu(appState *State, screen *Screen) *Menu {
+	return newMenu(appState, SELECT_GAME_MODE, screen, 0) // 0 defaults to SINGLE PLAYER
 }
 
 func (m *Menu) Run() {
 	m.screen.Clear()
-	m.screen.RenderMainMenu(*m.state.termSize, m.selectedMenuOption)
+	switch m.menuState {
+	case SELECT_GAME_MODE:
+		title := "SELECT GAME MODE"
+		termSize := *m.appState.termSize
+		m.screen.RenderMenu(termSize, title, ONLINE_MENU_OPTIONS, m.selectedMenuOption)
+	case SINGLE_MODE:
+		title := "SELECT DIFFICULTY"
+		termSize := *m.appState.termSize
+		m.screen.RenderMenu(termSize, title, OFFLINE_MENU_OPTIONS, m.selectedMenuOption)
+	}
 	<-m.keypressCh
 }
 
 func (m *Menu) Strategy(event rune) {
+	var options []string
+	switch m.menuState {
+	case SINGLE_MODE:
+		options = OFFLINE_MENU_OPTIONS
+	case SELECT_GAME_MODE:
+		options = ONLINE_MENU_OPTIONS
+	}
 	if isUp(event) {
 		m.selectedMenuOption = m.selectedMenuOption - 1
 		if m.selectedMenuOption < 0 {
-			m.selectedMenuOption = len(MENU_OPTIONS) - 1
+			m.selectedMenuOption = len(options) - 1
 		}
 	} else if isDown(event) {
 		m.selectedMenuOption = m.selectedMenuOption + 1
-		if m.selectedMenuOption >= len(MENU_OPTIONS) {
+		if m.selectedMenuOption >= len(options) {
 			m.selectedMenuOption = 0
 		}
 	} else if isEnterKey(event) {
-		selectedOpt := MENU_OPTIONS[m.selectedMenuOption]
-		if selectedOpt == EXIT {
-			m.state.SetState(QUIT)
-		} else {
-			gameOpts := m.state.SetState(IN_GAME).SetGameMode(SINGLE)
+		selectedOpt := options[m.selectedMenuOption]
+		switch selectedOpt {
+		case EXIT:
+			m.appState.SetState(QUIT)
+		case BACK:
+			m.menuState = SELECT_GAME_MODE
+			m.selectedMenuOption = 0
+		case SINGLE_PLAYER:
+			m.menuState = SINGLE_MODE
+			m.selectedMenuOption = 1
+		case MULTI_PLAYER:
+			m.appState.SetState(IN_GAME_SINGLE).SetGameMode(MULTI)
+		default:
+			gameOpts := m.appState.SetState(IN_GAME_SINGLE).SetGameMode(SINGLE)
 			switch selectedOpt {
 			case EASY:
 				gameOpts.SetDifficulty(EASY)
@@ -79,7 +116,7 @@ func (m *Menu) Strategy(event rune) {
 			}
 		}
 	} else if event == 'q' {
-		m.state.SetState(QUIT)
+		m.appState.SetState(QUIT)
 	}
 	m.keypressCh <- true
 }

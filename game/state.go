@@ -10,9 +10,13 @@ const (
 )
 
 const (
-	MAIN_MENU AppState = "MAIN_MENU" // starts here by default
-	IN_GAME   AppState = "IN_GAME"
-	QUIT      AppState = "QUIT"
+	MAIN_MENU          AppState = "MAIN_MENU" // starts here by default
+	IN_GAME_SINGLE     AppState = "IN_GAME_SINGLE"
+	IN_GAME_MULTI      AppState = "IN_GAME_MULTI"
+	PLAYER_NAME_SUBMIT AppState = "PLAYER_NAME_SUBMIT"
+	LOBBY              AppState = "LOBBY"
+	QUIT               AppState = "QUIT"
+	LOADING            AppState = "LOADING"
 )
 
 type TermSize struct {

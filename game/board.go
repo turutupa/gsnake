@@ -72,15 +72,15 @@ func (b *Board) UpdateLeaderboard(score int) {
 	}
 }
 
-func (b *Board) UpdateSnake(node *Node) {
-	// render snake
-	b.matrix[node.x][node.y] = rune(node.pointing)
-	node.render = rune(node.pointing)
+func (b *Board) UpdateSnake(snake *Snake) {
+	node := snake.head
+	arrowHead := rune(snake.arrowRenders[rune(node.pointing)])
+	b.matrix[node.row][node.col] = arrowHead
+	node.render = arrowHead
 	node = node.next
 
 	for node != nil && node.validated {
 		var cell rune
-
 		switch {
 		case node.next == nil:
 			cell = selectSnakeNodeRenderByOrientation(node.pointing)
@@ -89,17 +89,13 @@ func (b *Board) UpdateSnake(node *Node) {
 		default:
 			cell = selectSnakeNodeRenderOnDirection(node)
 		}
-
-		b.matrix[node.x][node.y] = cell
-
-		x := node.x
-		y := node.y
-
-		if x < 1 || x >= b.rows-1 || y < 1 || y >= b.cols-1 {
+		b.matrix[node.row][node.col] = cell
+		row := node.row
+		col := node.col
+		if row < 1 || row >= b.rows-1 || col < 1 || col >= b.cols-1 {
 			continue
 		}
-
-		b.matrix[x][y] = cell
+		b.matrix[row][col] = cell
 		node.render = cell
 		node = node.next
 	}
@@ -143,18 +139,24 @@ func selectSnakeNodeRenderOnDirection(node *Node) rune {
 
 func (b *Board) Intersects(snake *Snake) bool {
 	head := snake.head
-	x := head.x
-	y := head.y
+	x := head.row
+	y := head.col
 	if x == 0 || x == b.rows-1 || y == 0 || y == b.cols-1 {
 		return true
 	}
 
 	node := head.next
 	for node != nil && node.validated {
-		if x == node.x && y == node.y {
+		if x == node.row && y == node.col {
 			return true
 		}
 		node = node.next
 	}
 	return false
+}
+
+func (b *Board) IntersectsMulti(snake *Snake) bool {
+	row := snake.head.row
+	col := snake.head.col
+	return b.matrix[row][col] != ' '
 }

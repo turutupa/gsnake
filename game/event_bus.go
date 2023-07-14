@@ -24,9 +24,8 @@ func NewEventBus(state *State, eventPoller events.EventPoller) *EventBus {
 	return &EventBus{state, eventPoller, make(map[AppState]func(rune))}
 }
 
-func (e *EventBus) Subscribe(state AppState, strategy func(rune)) error {
+func (e *EventBus) Subscribe(state AppState, strategy func(rune)) {
 	e.strategies[state] = strategy
-	return nil
 }
 
 func (eb *EventBus) Run() {

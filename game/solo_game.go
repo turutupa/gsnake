@@ -4,16 +4,6 @@ import (
 	"time"
 )
 
-// Snake available speeds
-const (
-	EASY_SPEED     = 50
-	NORMAL_SPEED   = 40
-	HARD_SPEED     = 30
-	INSANITY_SPEED = 20
-)
-
-const MAX_PLAYER_NAME_LEN = 4
-
 type GameState int
 
 const (
@@ -63,8 +53,9 @@ func NewSoloGame(
 func (g *SoloGame) Run() {
 	var frameStart, frameTime uint32
 	var frameEnd time.Time
-	g.screen.RenderBoard(g.board)
+	g.screen.RenderBoardFrame(g.board)
 	g.screen.RenderScore(g.board, 0)
+	g.snake.Grow(6) // snake by default has length 1 so we increase to 7
 	for g.state == PLAYING {
 		frameStart = uint32(time.Now().UnixNano() / int64(time.Millisecond)) // Current time in milliseconds
 		g.screen.Remove(g.board, g.snake.head)
@@ -89,16 +80,19 @@ func (g *SoloGame) Run() {
 		// update internal board
 		g.board.UpdateFruit(g.fruit)
 		g.board.UpdateLeaderboard(g.player.score)
-		g.board.UpdateSnake(g.snake.head)
+		g.board.UpdateSnake(g.snake)
 
 		// render board
 		g.screen.RenderScore(g.board, g.player.score)
 		g.screen.RenderFruit(g.board, g.fruit)
-		g.screen.RenderSnake(g.board, g.snake.head)
+		g.screen.RenderSnake(g.board, g.snake)
+
+		// game over!
 		if g.board.Intersects(g.snake) {
-			time.Sleep(1 * time.Second)
+			time.Sleep(time.Second)
 			return
 		}
+
 		//  adding some extra time when going vertical because it feels faster
 		//  than when going horizontally due to font width/height.
 		//  Will solve that when we make it double columned
@@ -125,12 +119,12 @@ func (g *SoloGame) Leaderboard() {
 	scores := g.leaderboard.Get(g.difficulty)
 	if isHighScore {
 		g.state = LEADERBOARD_SUBMITTING
-		g.screen.RenderLeaderboard(g.board, g.difficulty, scores, g.player)
+		g.screen.RenderSingleLeaderboard(g.board, g.difficulty, scores, g.player)
 		isSubmitting := true
 		for isSubmitting {
 			select {
 			case <-g.keypressCh:
-				g.screen.RenderLeaderboard(g.board, g.difficulty, scores, g.player)
+				g.screen.RenderSingleLeaderboard(g.board, g.difficulty, scores, g.player)
 			case <-g.playerNameSubmitted:
 				g.leaderboard.Update(g.difficulty, g.player)
 				isSubmitting = false
@@ -139,7 +133,7 @@ func (g *SoloGame) Leaderboard() {
 		}
 	} else {
 		g.state = LEADERBOARD_MENU
-		g.screen.RenderLeaderboard(g.board, g.difficulty, scores, nil)
+		g.screen.RenderSingleLeaderboard(g.board, g.difficulty, scores, nil)
 		<-g.keypressCh
 	}
 }
@@ -151,7 +145,7 @@ func (g *SoloGame) Stop() {
 func (g *SoloGame) Restart() {
 	g.player = NewPlayer("")
 	g.screen.Restart()
-	g.snake.Restart(g.board)
+	g.snake.Restart(g.board.rows/2, g.board.cols/5)
 	g.fruit.New()
 	g.state = PLAYING
 }
@@ -174,30 +168,35 @@ func (g *SoloGame) SetDifficulty(diff string) {
 }
 
 func (g *SoloGame) ateFruit() bool {
-	x := g.snake.head.x
-	y := g.snake.head.y
+	x := g.snake.head.row
+	y := g.snake.head.col
 	return x == g.fruit.x && y == g.fruit.y
 }
 
 func (g *SoloGame) Strategy(event rune) {
 	switch g.state {
 	case PLAYING:
-		g.userActionSnake(event)
+		if event == 'q' {
+			g.player.score = 0 // he quit so player shouldn't set new high score
+			g.state = FINISHED
+			return
+		}
+		snakeStrategy(g.snake, event)
 	case LEADERBOARD_MENU:
-		g.userActionLeaderboardMenu(event)
+		g.singleLeaderboardStrategy(event)
 	case LEADERBOARD_SUBMITTING:
-		g.userActionLeaderboardSubmitting(event)
+		g.singleLeaderboardSubmitStrategy(event)
 	}
 }
 
-func (g *SoloGame) userActionLeaderboardMenu(event rune) {
+func (g *SoloGame) singleLeaderboardStrategy(event rune) {
 	if event == 'q' || isEnterKey(event) {
 		g.state = FINISHED
 		g.keypressCh <- true
 	}
 }
 
-func (g *SoloGame) userActionLeaderboardSubmitting(event rune) {
+func (g *SoloGame) singleLeaderboardSubmitStrategy(event rune) {
 	name, done := HandleUserInputForm(g.player.name, event)
 	if done {
 		g.playerNameSubmitted <- true
@@ -205,28 +204,4 @@ func (g *SoloGame) userActionLeaderboardSubmitting(event rune) {
 	}
 	g.player.name = name
 	g.keypressCh <- true
-}
-
-func (g *SoloGame) userActionSnake(event rune) {
-	pointing := g.snake.PointsTo()
-	if isUp(event) {
-		if pointing != DOWN {
-			g.snake.Point(UP)
-		}
-	} else if isDown(event) {
-		if pointing != UP {
-			g.snake.Point(DOWN)
-		}
-	} else if isLeft(event) {
-		if pointing != RIGHT {
-			g.snake.Point(LEFT)
-		}
-	} else if isRight(event) {
-		if pointing != LEFT {
-			g.snake.Point(RIGHT)
-		}
-	} else if event == 'q' {
-		g.player.score = 0 // he quit so player shouldn't set new high score
-		g.state = FINISHED
-	}
 }

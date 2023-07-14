@@ -8,7 +8,7 @@ const ROWS_SOLO = 20
 const COLS_SOLO = 50
 
 const ROWS_MULTI = 30
-const COLS_MULTI = 50
+const COLS_MULTI = 60
 
 type Gsnake struct {
 	state    *State
@@ -67,30 +67,14 @@ func (g *Gsnake) Run() {
 		for g.state.Get() == MAIN_MENU {
 			g.menu.Run()
 		}
-		if g.state.Get() == IN_GAME {
+		if g.state.Get() == IN_GAME_SINGLE {
 			switch g.state.gameMode {
 			case SINGLE:
-				g.screen.Clear()
-				board := NewBoard(ROWS_SOLO, COLS_SOLO)
-				leaderboard := NewLeaderboard()
-				fruit := NewFruit(ROWS_SOLO, COLS_SOLO)
-				snake := NewSnake(board)
-				game := NewSoloGame(board, g.screen, leaderboard, fruit, snake)
-				g.eventBus.Subscribe(IN_GAME, game.Strategy)
-				game.SetDifficulty(g.state.difficulty)
-				game.Run()
-				game.Leaderboard()
-				game.Restart()
-				g.state.SetState(MAIN_MENU)
+				g.runSolo()
 			case MULTI:
-				g.screen.Clear()
-				g.screen.PromptPlayerName()
-				// g.game.SetDifficulty(g.state.difficulty) // this has to go
-				// g.game.Run()
-				// g.game.Leaderboard()
-				// g.game.Restart()
-				g.state.SetState(MAIN_MENU)
+				g.runMulti()
 			}
+			g.state.SetState(MAIN_MENU)
 		}
 	}
 	g.Stop()
@@ -111,15 +95,52 @@ func (g *Gsnake) OnWindowChange(
 	}) {
 	g.state.termSize.rows = int(wc.Height)
 	g.state.termSize.cols = int(wc.Width)
-
 	g.screen.SetSize(int(wc.Height), int(wc.Width))
+}
 
-	// g.screen.Clear()
-	// if int(wc.Height) < g.board.rows || int(wc.Width) < g.board.cols {
-	// 	g.screen.RenderWarning(int(wc.Height), int(wc.Width), "MAKE YOUR TERMINAL BIGGER TO RENDER GAME")
-	// 	// g.screen.
-	// } else {
-	// 	g.screen.SetOffset(offsetRows, offsetCols)
-	// 	g.screen.RenderBoard(g.board)
-	// }
+func (g *Gsnake) runSolo() {
+	g.screen.Clear()
+	board := NewBoard(ROWS_SOLO, COLS_SOLO)
+	leaderboard := NewLeaderboard()
+	fruit := NewFruit(ROWS_SOLO, COLS_SOLO)
+	snake := NewSnake(board.rows/2, board.cols/5)
+	game := NewSoloGame(board, g.screen, leaderboard, fruit, snake)
+	g.eventBus.Subscribe(IN_GAME_SINGLE, game.Strategy)
+	game.SetDifficulty(g.state.difficulty)
+	game.Run()
+	game.Leaderboard()
+	game.Restart()
+}
+
+func (g *Gsnake) runMulti() {
+	g.screen.Clear()
+	player := NewPlayer("").WithUUID().WithScreen(g.screen)
+	g.eventBus.Subscribe(PLAYER_NAME_SUBMIT, player.SubmitNameStrategy)
+	g.state.SetState(PLAYER_NAME_SUBMIT)
+	player.SetName()
+	g.eventBus.Subscribe(LOADING, func(event rune) {
+		if event == 'q' {
+			g.state.SetState(QUIT)
+		}
+	})
+	g.state.SetState(LOADING)
+	lobby := NewLobby()
+	room := lobby.Join(player)
+	exitGame := make(chan bool)
+	multiStrategy := func(event rune) {
+		if event == 'q' {
+			room.OnExit(player)
+			exitGame <- true
+		}
+		player.MultiGameStrategy(event)
+	}
+	g.eventBus.Subscribe(IN_GAME_MULTI, multiStrategy)
+	g.state.SetState(IN_GAME_MULTI)
+	select {
+	case <-room.notifyGameEnd:
+	// game is over!
+	case <-exitGame:
+		// user wants to leave!
+	}
+
 }

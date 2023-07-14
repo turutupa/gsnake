@@ -3,60 +3,71 @@ package gsnake
 type Pointing rune
 
 const (
-	UP    Pointing = '▲'
-	DOWN  Pointing = '▼'
-	RIGHT Pointing = '►'
-	LEFT  Pointing = '◄'
+	UP    Pointing = 'u'
+	DOWN  Pointing = 'd'
+	RIGHT Pointing = 'r'
+	LEFT  Pointing = 'l'
 )
 
-// // Set 1
-// const (
-// 	UP    Pointing = '△'
-// 	DOWN  Pointing = '▽'
-// 	RIGHT Pointing = '▷'
-// 	LEFT  Pointing = '◁'
-// )
-
-// Set 2
 const (
-	UP2    Pointing = '⇧'
-	DOWN2  Pointing = '⇩'
-	RIGHT2 Pointing = '⇨'
-	LEFT2  Pointing = '⇦'
+	arrowUp0    Pointing = '▲'
+	arrowDown0  Pointing = '▼'
+	arrowRight0 Pointing = '►'
+	arrowLeft0  Pointing = '◄'
 )
 
-// Set 3
 const (
-	UP3    Pointing = '⬆'
-	DOWN3  Pointing = '⬇'
-	RIGHT3 Pointing = '➡'
-	LEFT3  Pointing = '⬅'
+	arrowUp1    Pointing = '△'
+	arrowDown1  Pointing = '▽'
+	arrowRight1 Pointing = '▷'
+	arrowLeft1  Pointing = '◁'
 )
 
-// Set 4
 const (
-	UP4    Pointing = '⇡'
-	DOWN4  Pointing = '⇣'
-	RIGHT4 Pointing = '⇢'
-	LEFT4  Pointing = '⇠'
+	arrowUp2    Pointing = '⇡'
+	arrowDown2  Pointing = '⇣'
+	arrowRight2 Pointing = '⇢'
+	arrowLeft2  Pointing = '⇠'
 )
 
 // Set 5
 const (
-	UP5    Pointing = '⮝'
-	DOWN5  Pointing = '⮟'
-	RIGHT5 Pointing = '⮞'
-	LEFT5  Pointing = '⮜'
+	arrowUp3    Pointing = '⮝'
+	arrowDown3  Pointing = '⮟'
+	arrowRight3 Pointing = '⮞'
+	arrowLeft3  Pointing = '⮜'
 )
 
+var arrows = []map[rune]Pointing{
+	{'u': arrowUp0, 'd': arrowDown0, 'l': arrowLeft0, 'r': arrowRight0},
+	{'u': arrowUp1, 'd': arrowDown1, 'l': arrowLeft1, 'r': arrowRight1},
+	{'u': arrowUp2, 'd': arrowDown2, 'l': arrowLeft2, 'r': arrowRight2},
+	{'u': arrowUp3, 'd': arrowDown3, 'l': arrowLeft3, 'r': arrowRight3},
+}
+
+type Color = string
+
+const (
+	white   = "\033[37m"
+	red     = "\033[31m"
+	green   = "\033[32m"
+	blue    = "\033[34m"
+	magenta = "\033[35m"
+	reset   = "\033[0m"
+)
+
+var colors = []Color{white, red, green, blue, magenta}
+
 type Snake struct {
-	head *Node
-	tail *Node
+	head         *Node
+	tail         *Node
+	color        Color
+	arrowRenders map[rune]Pointing
 }
 
 type Node struct {
-	x           int
-	y           int
+	row         int
+	col         int
 	pointing    Pointing
 	tmpPointing Pointing
 	prev        *Node
@@ -65,11 +76,13 @@ type Node struct {
 	validated   bool
 }
 
-func NewSnake(board *Board) *Snake {
+func NewSnake(row int, col int) *Snake {
 	snake := &Snake{}
+	snake.arrowRenders = arrows[0] // default
+	snake.color = colors[0]        // default
 	snake.head = &Node{
-		x:           board.rows / 2,
-		y:           board.cols / 5,
+		row:         row,
+		col:         col,
 		pointing:    RIGHT,
 		tmpPointing: RIGHT,
 		prev:        nil,
@@ -77,26 +90,12 @@ func NewSnake(board *Board) *Snake {
 		render:      HORIZONTAL,
 		validated:   true,
 	}
-	node := snake.head
-	for i := 0; i < 6; i++ { // initial length of 7
-		node.next = &Node{
-			x:           node.x,
-			y:           node.y - 1,
-			pointing:    RIGHT,
-			tmpPointing: RIGHT,
-			prev:        node,
-			next:        nil,
-			render:      HORIZONTAL,
-			validated:   true,
-		}
-		node = node.next
-	}
-	snake.tail = node
+	snake.tail = snake.head
 	return snake
 }
 
-func (s *Snake) Restart(board *Board) {
-	newSnake := NewSnake(board)
+func (s *Snake) Restart(row int, col int) {
+	newSnake := NewSnake(row, col)
 	s.head = newSnake.head
 	s.tail = newSnake.tail
 }
@@ -111,26 +110,29 @@ func (s *Snake) Point(point Pointing) {
 
 func (s *Snake) Move() {
 	node := s.head
-	x_prev := node.x
-	y_prev := node.y
+	x_prev := node.row
+	y_prev := node.col
 	pointing_prev := node.tmpPointing
-	if node.tmpPointing == UP {
-		node.x = node.x - 1
-	} else if node.tmpPointing == RIGHT {
-		node.y = node.y + 1
-	} else if node.tmpPointing == LEFT {
-		node.y = node.y - 1
-	} else {
-		node.x = node.x + 1
+
+	switch node.tmpPointing {
+	case UP:
+		node.row = node.row - 1
+	case RIGHT:
+		node.col = node.col + 1
+	case LEFT:
+		node.col = node.col - 1
+	case DOWN:
+		node.row = node.row + 1
 	}
+
 	node.pointing = node.tmpPointing
 	node = node.next
 	for node != nil {
 		pointing_tmp := node.tmpPointing
-		x_tmp := node.x
-		y_tmp := node.y
-		node.x = x_prev
-		node.y = y_prev
+		x_tmp := node.row
+		y_tmp := node.col
+		node.row = x_prev
+		node.col = y_prev
 		node.pointing = pointing_prev
 		node.tmpPointing = pointing_prev
 		x_prev = x_tmp
@@ -154,25 +156,46 @@ func (s *Snake) append() {
 	var x int
 	var y int
 	if s.tail.pointing == UP {
-		x = s.tail.x + 1
-		y = s.tail.y
+		x = s.tail.row + 1
+		y = s.tail.col
 	} else if s.tail.pointing == RIGHT {
-		x = s.tail.x
-		y = s.tail.y - 1
+		x = s.tail.row
+		y = s.tail.col - 1
 	} else if s.tail.pointing == DOWN {
-		x = s.tail.x - 1
-		y = s.tail.y
+		x = s.tail.row - 1
+		y = s.tail.col
 	} else {
-		x = s.tail.x
-		y = s.tail.y + 1
+		x = s.tail.row
+		y = s.tail.col + 1
 	}
 	s.tail.next = &Node{
-		x:         x,
-		y:         y,
+		row:       x,
+		col:       y,
 		pointing:  s.tail.pointing,
 		prev:      s.tail,
 		next:      nil,
 		validated: false,
 	}
 	s.tail = s.tail.next
+}
+
+func snakeStrategy(snake *Snake, event rune) {
+	pointing := snake.PointsTo()
+	if isUp(event) {
+		if pointing != DOWN {
+			snake.Point(UP)
+		}
+	} else if isDown(event) {
+		if pointing != UP {
+			snake.Point(DOWN)
+		}
+	} else if isLeft(event) {
+		if pointing != RIGHT {
+			snake.Point(LEFT)
+		}
+	} else if isRight(event) {
+		if pointing != LEFT {
+			snake.Point(RIGHT)
+		}
+	}
 }
