@@ -3,7 +3,7 @@
 </div>
 
 Table of Contents 
-- [Live!](#live)
+- [Play Now!](#play-now)
 - [Demo](#demo)
 - [Installation](#installation)
 - [How to run](#how-to-run)
@@ -13,7 +13,7 @@ Table of Contents
 - [Contact](#contact)
 - [Donations](#donations)
 
-## Live!
+## Play Now!
 Currently running on `turutupa.com`. You may play gsnake using 
 ```bash
 $ ssh <your_username>@turutupa.com -p 5555
