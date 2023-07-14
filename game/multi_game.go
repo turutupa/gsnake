@@ -36,7 +36,7 @@ func (g *MultiGame) AddPlayer(player *Player) {
 	g.players = append(g.players, player)
 }
 
-func (g *MultiGame) DefaultLayout() {
+func (g *MultiGame) DefaultLayout(started bool) {
 	for i, player := range g.players {
 		player.screen.Clear()
 		g.board.UpdateSnake(player.snake)
@@ -47,8 +47,8 @@ func (g *MultiGame) DefaultLayout() {
 
 	for _, player := range g.players {
 		player.screen.RenderBoardFrame(g.board)
-		if len(g.players) < MAX_ROOM_SIZE {
-			player.screen.RenderWarning(g.board, "Waiting for players or game starts in 30s")
+		if len(g.players) < MAX_ROOM_SIZE && !started {
+			player.screen.RenderWarning(g.board, "Waiting for players or game starts in 20s")
 		}
 		for _, p := range g.players {
 			player.screen.RenderSnake(g.board, p.snake)

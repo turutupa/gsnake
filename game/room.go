@@ -46,7 +46,7 @@ func (r *Room) Run() {
 	for waitingForPlayers {
 		select {
 		case <-r.notifyPlayerJoined:
-			r.game.DefaultLayout()
+			r.game.DefaultLayout(r.started)
 			info := fmt.Sprintf("New player joined. Players in room %s:", r.id)
 			for _, player := range r.players {
 				info = info + "\n\t* " + player.name
@@ -56,7 +56,7 @@ func (r *Room) Run() {
 			if len(r.players) > 1 {
 				waitingForPlayers = false
 			}
-		case <-time.After(30 * time.Second):
+		case <-time.After(20 * time.Second):
 			if len(r.players) > 1 {
 				waitingForPlayers = false
 			}
@@ -65,9 +65,9 @@ func (r *Room) Run() {
 	log.Info("Starting game for room %s", r.id)
 	r.started = true
 	for {
-		r.game.DefaultLayout()
+		r.game.DefaultLayout(r.started)
 		r.game.Countdown("Game starts in...")
-		r.game.DefaultLayout()
+		r.game.DefaultLayout(r.started)
 		r.game.Run()
 		if len(r.players) == 1 {
 			for _, p := range r.players {
