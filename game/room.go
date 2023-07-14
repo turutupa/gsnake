@@ -56,7 +56,7 @@ func (r *Room) Run() {
 			if len(r.players) > 1 {
 				waitingForPlayers = false
 			}
-		case <-time.After(1 * time.Minute):
+		case <-time.After(30 * time.Second):
 			if len(r.players) > 1 {
 				waitingForPlayers = false
 			}
