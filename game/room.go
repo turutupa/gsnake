@@ -7,6 +7,7 @@ import (
 	"turutupa/gsnake/log"
 )
 
+const WAITING_PLAYERS_IN_S = 15
 const MAX_ROOM_SIZE int = 4
 
 type Room struct {
@@ -56,7 +57,7 @@ func (r *Room) Run() {
 			if len(r.players) > 1 {
 				waitingForPlayers = false
 			}
-		case <-time.After(20 * time.Second):
+		case <-time.After(WAITING_PLAYERS_IN_S * time.Second):
 			if len(r.players) > 1 {
 				waitingForPlayers = false
 			}

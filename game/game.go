@@ -9,6 +9,12 @@ const (
 	INSANITY_SPEED = 20
 )
 
+const ROWS_SOLO = 20
+const COLS_SOLO = 50
+
+const ROWS_MULTI = 30
+const COLS_MULTI = 80
+
 type Game interface {
 	Run()
 	Leaderboard()

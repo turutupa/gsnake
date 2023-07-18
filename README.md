@@ -51,12 +51,14 @@ To be updated.
 ![architecture](media/architecture.png)
 
 ## Roadmap
+- [ ] Refactor game so that grid is double columned (this way width and height will be roughly the same)
+- [ ] Refactor game to comply with Chain of Responsibility design pattern - components!
 - [ ] Update README with latest changes
     - [ ] Update architecture with SSH details
+    - [ ] Update new architecture after refactoring to add multiplayer
 - [x] ~~Add bash script to install/run the game~~
 - [x] ~~Finish README.md including how to install on machine~~
 - [ ] Inifite mode? Where you can only die if snake hits itself
-- [ ] Refactor game so that grid is double columned (this way width and height will be roughly the same)
 - [x] ~~Improve leaderboard~~
     - [x] ~~Add some borders~~
     - [x] ~~Add the option to input username~~
@@ -69,7 +71,9 @@ To be updated.
 - [x] ~~Completely new project would involve to convert this to a SSH application~~
 - [ ] Versus mode! Let players fight!
     - [x] Create rooms/lobbies
-    - [ ] Create new game logic for multiplayer. This could also work for local mode (1 keyboard)
+    - [x] Create new game logic for multiplayer
+        - [ ] Extend for multiplayer local mode (1 keyboard)
+    - [ ] Create side menu with leaderboard and colors of each player
     - [ ] Power ups? // not in the near future
 
 ## Contributing

@@ -1,6 +1,7 @@
 package gsnake
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -48,7 +49,12 @@ func (g *MultiGame) DefaultLayout(started bool) {
 	for _, player := range g.players {
 		player.screen.RenderBoardFrame(g.board)
 		if len(g.players) < MAX_ROOM_SIZE && !started {
-			player.screen.RenderWarning(g.board, "Waiting for players or game starts in 20s")
+			if len(g.players) == 1 {
+				player.screen.RenderWarning(g.board, "Waiting for players...")
+			} else {
+				msg := fmt.Sprintf("Game starts in %ds", WAITING_PLAYERS_IN_S)
+				player.screen.RenderWarning(g.board, msg)
+			}
 		}
 		for _, p := range g.players {
 			player.screen.RenderSnake(g.board, p.snake)
@@ -80,11 +86,17 @@ func (g *MultiGame) Run() {
 			}
 			player.snake.Grow(1)
 			player.snake.Move()
+			g.board.UpdateSnake(player.snake)
+		}
+
+		// we do not include this in prev iteration because
+		// two snakes could die at the same time - but snake
+		// that is calculated first may not be found dead
+		for _, player := range g.players {
 			if g.board.IntersectsMulti(player.snake) {
 				player.isAlive = false
 				roundDeaths++
 			}
-			g.board.UpdateSnake(player.snake)
 		}
 
 		for _, player := range g.players {
