@@ -44,6 +44,15 @@ type SshApp interface {
 	})
 }
 
+type rejectionReason struct {
+	Reason     string
+	ExitStatus uint32
+}
+
+func (r rejectionReason) Marshal() []byte {
+	return ssh.Marshal(r)
+}
+
 type SshServer struct {
 	port int
 }
@@ -92,6 +101,7 @@ func (s *SshServer) Run(sshAppInjector func(io.Writer, events.EventPoller) SshAp
 		}
 		username := sshConn.User()
 		log.Info(username + " connected from " + netConn.RemoteAddr().String() + " " + string(sshConn.ClientVersion()))
+
 		go ssh.DiscardRequests(reqs)
 		go s.handleChannels(username, chans, sshAppInjector)
 	}
@@ -123,10 +133,17 @@ func (s *SshServer) handleChannel(
 		log.Error("Could not accept channel", err)
 		return
 	}
+	defer s.closeChannel(channel)
 	defer log.Info(username + " disconnected")
 
 	// Set up terminal emulation
 	t := terminal.NewTerminal(channel, "")
+
+	if username == "root" {
+		t.Write([]byte("Username `root` is not allowed. "))
+		return
+	}
+
 	sshInputReader := NewSshInputReader(channel)
 	sshApp := sshAppInjector(t, sshInputReader)
 
@@ -147,7 +164,6 @@ func (s *SshServer) handleChannel(
 		}{Width: 50, Height: 30, PixelWidth: 0, PixelHeight: 0})
 	}
 	sshApp.Run() // RUN!
-	s.closeChannel(channel)
 }
 
 func handleRequests(in <-chan *ssh.Request, app SshApp, recvUserTerm chan<- bool) {
