@@ -140,6 +140,7 @@ func (s *SshServer) handleChannel(
 	t := terminal.NewTerminal(channel, "")
 
 	if username == "root" {
+		log.Info("Username `root` kicked out. Reason: username not allowed.")
 		t.Write([]byte("Username `root` is not allowed. "))
 		return
 	}
