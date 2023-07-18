@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"golang.org/x/sys/unix"
+	"golang.org/x/term"
 )
 
 type Term struct {
@@ -35,6 +36,14 @@ func (t *Term) Close() {
 		}
 	default:
 	}
+}
+
+func GetTerminalSize() (int, int, error) {
+	width, height, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get terminal size: %v", err)
+	}
+	return height, width, nil
 }
 
 func (t *Term) readInput() {

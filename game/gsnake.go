@@ -136,5 +136,4 @@ func (g *Gsnake) runMulti() {
 	case <-exitGame:
 		// user wants to leave!
 	}
-
 }

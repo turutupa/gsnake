@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"turutupa/gsnake/events"
-	"turutupa/gsnake/game"
+	gsnake "turutupa/gsnake/game"
 	"turutupa/gsnake/log"
 	"turutupa/gsnake/ssh"
 )
@@ -53,6 +53,19 @@ func main() {
 	} else {
 		screen := gsnake.NewScreen(os.Stdout)
 		game := gsnake.NewOfflineGsnake(screen)
+		if rows, cols, err := gsnake.GetTerminalSize(); err == nil {
+			game.OnWindowChange(struct {
+				Width       uint32
+				Height      uint32
+				PixelWidth  uint32
+				PixelHeight uint32
+			}{
+				Width:       uint32(cols),
+				Height:      uint32(rows),
+				PixelWidth:  0,
+				PixelHeight: 0,
+			})
+		}
 		game.Run()
 	}
 }

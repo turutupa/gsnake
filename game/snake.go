@@ -24,13 +24,12 @@ const (
 )
 
 const (
-	arrowUp2    Pointing = '⇡'
-	arrowDown2  Pointing = '⇣'
-	arrowRight2 Pointing = '⇢'
-	arrowLeft2  Pointing = '⇠'
+	arrowUp2    Pointing = '●'
+	arrowDown2  Pointing = '●'
+	arrowRight2 Pointing = '●'
+	arrowLeft2  Pointing = '●'
 )
 
-// Set 5
 const (
 	arrowUp3    Pointing = '⮝'
 	arrowDown3  Pointing = '⮟'
@@ -79,7 +78,7 @@ type Node struct {
 func NewSnake(row int, col int) *Snake {
 	snake := &Snake{}
 	snake.arrowRenders = arrows[0] // default
-	snake.color = colors[0]        // default
+	snake.color = white            // default
 	snake.head = &Node{
 		row:         row,
 		col:         col,
