@@ -53,6 +53,9 @@ To be updated.
 ## Roadmap
 - [ ] Refactor game so that grid is double columned (this way width and height will be roughly the same)
 - [ ] Refactor game to comply with Chain of Responsibility design pattern - components!
+- [ ] App re-render on user window change event - mostly affects the paddings or if window is not big enough
+    - [~] Re-render main menu 
+    - [ ] Re-render game - only working if user creates new game
 - [ ] Update README with latest changes
     - [ ] Update architecture with SSH details
     - [ ] Update new architecture after refactoring to add multiplayer
