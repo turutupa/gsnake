@@ -16,7 +16,7 @@ Table of Contents
 ## Play Now!
 Currently running on `turutupa.com`. Join now!
 ```bash
-$ ssh turutupa.com -p 5555
+$ ssh turutupa.com
 ```
 
 ## Demo 
