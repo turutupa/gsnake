@@ -145,6 +145,12 @@ func (s *SshServer) handleChannel(
 		return
 	}
 
+	if username == "admin" {
+		log.Info("Username `admin` kicked out. Reason: username not allowed.")
+		t.Write([]byte("Username `admin` is not allowed. "))
+		return
+	}
+
 	sshInputReader := NewSshInputReader(channel)
 	sshApp := sshAppInjector(t, sshInputReader)
 
