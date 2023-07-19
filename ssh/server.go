@@ -140,7 +140,7 @@ func (s *SshServer) handleChannel(
 	t := terminal.NewTerminal(channel, "")
 
 	if forbiddenUsername(username) {
-		log.Info(fmt.Sprintf("Username `%s` kicked out. Reason: username not allowed.", username))
+		log.Warn(fmt.Sprintf("Username `%s` kicked out. Reason: username not allowed.", username))
 		t.Write([]byte(fmt.Sprintf("Username `%s` is not allowed. ", username)))
 		return
 	}
