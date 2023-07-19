@@ -139,15 +139,9 @@ func (s *SshServer) handleChannel(
 	// Set up terminal emulation
 	t := terminal.NewTerminal(channel, "")
 
-	if username == "root" {
-		log.Info("Username `root` kicked out. Reason: username not allowed.")
-		t.Write([]byte("Username `root` is not allowed. "))
-		return
-	}
-
-	if username == "admin" {
-		log.Info("Username `admin` kicked out. Reason: username not allowed.")
-		t.Write([]byte("Username `admin` is not allowed. "))
+	if forbiddenUsername(username) {
+		log.Info(fmt.Sprintf("Username `%s` kicked out. Reason: username not allowed.", username))
+		t.Write([]byte(fmt.Sprintf("Username `%s` is not allowed. ", username)))
 		return
 	}
 
@@ -171,6 +165,16 @@ func (s *SshServer) handleChannel(
 		}{Width: 50, Height: 30, PixelWidth: 0, PixelHeight: 0})
 	}
 	sshApp.Run() // RUN!
+}
+
+func forbiddenUsername(username string) bool {
+	forbidden := []string{"root", "admin", "oracle", "postgres"}
+	for _, f := range forbidden {
+		if f == username {
+			return true
+		}
+	}
+	return false
 }
 
 func handleRequests(in <-chan *ssh.Request, app SshApp, recvUserTerm chan<- bool) {
