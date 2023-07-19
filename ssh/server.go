@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"turutupa/gsnake/events"
@@ -169,8 +170,9 @@ func (s *SshServer) handleChannel(
 
 func forbiddenUsername(username string) bool {
 	forbidden := []string{"root", "admin", "oracle", "postgres"}
+	u := strings.ToLower(username)
 	for _, f := range forbidden {
-		if f == username {
+		if f == u {
 			return true
 		}
 	}
