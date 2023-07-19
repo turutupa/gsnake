@@ -169,10 +169,10 @@ func (s *SshServer) handleChannel(
 }
 
 func forbiddenUsername(username string) bool {
-	forbidden := []string{"root", "admin", "oracle", "postgres"}
+	forbidden := []string{"root", "admin", "oracle", "postgres", "test", "pi"}
 	u := strings.ToLower(username)
 	for _, f := range forbidden {
-		if f == u {
+		if strings.Contains(u, f) {
 			return true
 		}
 	}
