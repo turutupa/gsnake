@@ -86,7 +86,6 @@ func (g *MultiGame) Run() {
 			}
 			player.snake.Grow(1)
 			player.snake.Move()
-			g.board.UpdateSnake(player.snake)
 		}
 
 		// we do not include this in prev iteration because
@@ -97,6 +96,7 @@ func (g *MultiGame) Run() {
 				player.isAlive = false
 				roundDeaths++
 			}
+			g.board.UpdateSnake(player.snake)
 		}
 
 		for _, player := range g.players {
