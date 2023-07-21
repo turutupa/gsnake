@@ -1,6 +1,12 @@
-package ssh
+package gsnake
 
-type ActivityTracker struct {
+import "sync"
+
+var (
+	m sync.RWMutex
+)
+
+type Stats struct {
 	ActiveUsers   int
 	RequestCount  int
 	ErrorCount    int
