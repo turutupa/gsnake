@@ -2,6 +2,9 @@
   <img src="media/gsnake.png" alt="gsnake" height="200">
 </div>
 
+## About
+Hey there! Ever wanted to play Snake in the command line with friends? Well, I've got you covered! I've built this CLI snake game from the ground up, along with a custom SSH server, all for the fun of learning and tinkering. No third-party libraries here - just pure coding joy! Join in and let's see who can rack up the highest score! Enjoy!
+
 Table of Contents 
 - [Play Now!](#play-now)
 - [Demo](#demo)
