@@ -22,6 +22,8 @@ Currently running on `turutupa.com`. Join now!
 $ ssh turutupa.com
 ```
 
+Edit: had to take it down for now. May bring it up again at some point.
+
 ## Demo 
 <div align="center">
   <img src="media/gsnake.gif" alt="gsnake" height="300">
