@@ -3,7 +3,13 @@
 </div>
 
 ## About
-Hey there! Ever wanted to play Snake in the command line with friends? Well, I've got you covered! I've built this CLI snake game from the ground up, along with a custom SSH server, all for the fun of learning and tinkering. No third-party libraries here - just pure coding joy! Join in and let's see who can rack up the highest score! Enjoy!
+Welcome to my CLI snake game project! Get ready for some snake-slingin' action, whether you're flying solo or challenging your friends online!
+
+In single-player mode, you can test your skills across three different difficulty levels. Whether you're a beginner or a seasoned pro, there's a challenge waiting for you.
+
+But the real excitement kicks in with the online multiplayer mode. Here, it's all about being the last snake standing! Connect to the online server and compete against others in a battle of survival. Every turn counts as you maneuver your snake, and points are awarded based on who lasts the longest. Keep slithering and scoring until someone reaches the target score and emerges victorious!
+
+So, whether you're aiming to top the leaderboard in single-player mode or outmaneuvering opponents in online mode, there's no shortage of thrills in this snake showdown. Let the games begin!
 
 Table of Contents 
 - [Play Now!](#play-now)
